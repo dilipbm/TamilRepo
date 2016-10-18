@@ -7,7 +7,7 @@ plugin = Plugin()
 @plugin.route('/')
 def index():
     item = {
-        'label': 'Hello XBMC2!',
+        'label': 'Hello XBMC3!',
         'path': 'http://s3.amazonaws.com/KA-youtube-converted/JwO_25S_eWE.mp4/JwO_25S_eWE.mp4',
         'is_playable': True
     }
