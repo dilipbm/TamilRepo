@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <addon id="repository.tamilrepo" name="Tamil Repo" version="1.0.0" provider-name="Dilip">
+        <requires>
+            <import addon="xbmc.addon" version="12.0.0"/>
+        </requires>
+        <extension point="xbmc.addon.repository" name="Tamil Repo">
+            <info compressed="false">http://tamilrepokodi.site88.net/_repo/addons.xml</info>
+            <checksum>http://tamilrepokodi.site88.net/_repo/addons.xml.md5</checksum>
+            <datadir zip="true">http://tamilrepokodi.site88.net/_repo/</datadir>
+            <hashes>false</hashes>
+        </extension>
+        <extension point="xbmc.addon.metadata">
+            <summary>All Tamil addons for KODI</summary>
+            <description>Here you can find all tamil addons for KODI</description>
+            <platform>all</platform>
+    </extension>
+</addon>
