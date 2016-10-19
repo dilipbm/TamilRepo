@@ -41,6 +41,7 @@ def movies_view(site_name, section_url):
 
     items = [{
                  'label': movie['name'],
+                 'thumbnail': movie['image'],
                  'path': plugin.url_for('stream_list_view', movie_name=movie['name'], movie_url=movie['url'])
              } for movie in movies]
 
