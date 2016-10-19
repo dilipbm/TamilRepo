@@ -48,7 +48,7 @@ def movies_view(site_name, url):
 
     return items
 
-
+# Lecture
 #@plugin.route('/lectures/<url>/')
 #def play_lecture(url):
 #    item = {'label': 'Movie',
