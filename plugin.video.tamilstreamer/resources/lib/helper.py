@@ -1,7 +1,6 @@
 
 import urllib, urllib2
 from bs4 import BeautifulSoup
-#import xbmc
 
 def get_soup_from_url(url):
   """
@@ -35,14 +34,7 @@ def remove_duplicates(List):
 
 def movie_name_resolver(name):
     name = name.replace('Tamil Full Movie Watch Online', '')
-    name = name.replace('DVDScr', '')
-    name = name.replace('HQ', '')
-    name = name.replace('720p', '')
-    name = name.replace('HDTV', '')
     name = name.replace('Tamil Movie Watch Online', '')
-    name = name.replace('HD', '')
-    name = name.replace('Rip', '')
-    name = name.replace(' Pre', '')
     name = name.replace('Tamil Dubbed Movie', '')
     name = name.replace('Watch Online', '')
     name = name.strip()
