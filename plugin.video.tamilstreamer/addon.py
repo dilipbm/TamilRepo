@@ -1,5 +1,6 @@
 from xbmcswift2 import Plugin
 from resources.lib import api_tamilyogi as api_tamilyogi
+import pprint
 
 plugin = Plugin()
 
@@ -36,41 +37,35 @@ def section_view(site_name):
 @plugin.route('/movies/<site_name>/<section_url>')
 def movies_view(site_name, section_url):
     if site_name == 'tamilyogi':
+        print 'Dans movie view ' + section_url
         api = api_tamilyogi.TamilYogi()
         movies = api.get_movies(section_url)
 
     items = [{
                  'label': movie['name'],
                  'thumbnail': movie['image'],
-                 'path': plugin.url_for('stream_list_view', movie_name=movie['name'], movie_url=movie['url'])
+                 'path': plugin.url_for('stream_list_view', site_name=site_name, movie_name=movie['name'], movie_url=movie['url'])
              } for movie in movies]
 
     return items
 
 
 # STREAM LIST VIEW
-@plugin.route('/stream_list/<movie_name>/<movie_url>')
-def stream_list_view(movie_name, movie_url):
-    api = api_tamilyogi.TamilYogi()
-    stream_urls = api.get_stream_urls(movie_name, movie_url)
+@plugin.route('/stream_list/<site_name>/<movie_name>/<movie_url>')
+def stream_list_view(site_name, movie_name, movie_url):
+    # If Next Page
+    if movie_name == 'Next Page':
+        plugin.redirect(plugin.url_for('movies_view', site_name=site_name, section_url=movie_url))
 
-    items = [{'label': 'Play - ' + stream_url['name'] + ' - ' + stream_url['quality'],
-              'path': plugin.url_for('play_lecture', movie_name=stream_url['name'], stream_url=stream_url['url']),
-              'is_playable': True} for stream_url in stream_urls]
+    else:
+        api = api_tamilyogi.TamilYogi()
+        stream_urls = api.get_stream_urls(movie_name, movie_url)
 
-    return items
+        items = [{'label': 'Play - ' + stream_url['name'] + ' - ' + stream_url['quality'],
+                  'path': plugin.url_for('play_lecture', movie_name=stream_url['name'], stream_url=stream_url['url']),
+                  'is_playable': True} for stream_url in stream_urls]
 
-
-#   if len(stream_urls) > 1:
-#       items = [{'label': 'Play - ' + stream_url['name'] + ' - ' + stream_url['quality'],
-#               'path': plugin.url_for('play_lecture', movie_name=stream_url['name'], stream_url=stream_url['url']),
-#               'is_playable': True} for stream_url in stream_urls]
-#
-#        return items
-#
-#    else :
-#        plugin.log.info('Playing url: %s' % stream_urls[0]['url'])
-#        plugin.set_resolved_url(stream_urls[0]['url'])
+        return items
 
 
 @plugin.route('/lectures/<stream_url>/')

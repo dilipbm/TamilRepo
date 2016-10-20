@@ -1,7 +1,5 @@
 from resources.scrapers import tamilyogi_scraper
-import pprint
+from resources.lib import stream_resolver
 
-url = 'http://tamilyogi.cc/category/tamilyogi-full-movie-online/'
-movies, nextpage = tamilyogi_scraper.movie_loader(url)
-
-pprint.pprint(movies)
+url = stream_resolver.load_vidmad_video('http://vidmad.net/embed-9iejdznxifly.html')
+print(url)

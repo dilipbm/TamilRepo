@@ -1,5 +1,6 @@
-from ..lib import helper
-import pprint
+from ..lib import helper, stream_resolver
+import urllib, urllib2
+
 
 def movie_loader(url):
     """
@@ -19,7 +20,10 @@ def movie_loader(url):
         try:
             nextpagetag = a.get('class')
             if 'next' in nextpagetag:
-                nextpage = a.get('href')
+                next_page_url = a.get('href')
+                next_page = {'name': 'Next Page',
+                             'image': '',
+                             'url': next_page_url}
         except:
             pass
 
@@ -39,5 +43,45 @@ def movie_loader(url):
                     added.append(title)
             except:
                 pass
+    movies.append(next_page)
+    return movies
 
-    return movies, nextpage
+
+def get_stream_url(movie_page_url):
+    soup = helper.get_soup_from_url(movie_page_url)
+    l = soup.find_all('iframe')
+    for iframe in l:
+        print 'in get_Stream_url'
+
+        src = iframe.get('src')
+        link = urllib2.urlparse.urlsplit(src)
+        host = link.hostname
+        host = host.replace('www.', '')
+        host = host.replace('.com', '')
+        host = host.replace('.tv', '')
+        host = host.replace('.net', '')
+        host = host.replace('.cc', '')
+        host = host.replace('.sx', '')
+        hostName = host.capitalize()
+        # print "HostName = " + hostName
+
+        print src
+
+        if hostName == 'Vidmad':
+            videofile = stream_resolver.load_vidmad_video(src)
+
+        elif hostName == 'vidmad':
+            videofile = stream_resolver.load_vidmad_video(src)
+
+        elif hostName == 'Fastplay':
+            videofile = stream_resolver.load_fastplay_video(src)
+
+        elif hostName == 'fastplay':
+            videofile = stream_resolver.load_fastplay_video(src)
+
+        else:
+            # print 'Host ingored!!'
+            videofile = None
+            pass
+
+    return videofile
