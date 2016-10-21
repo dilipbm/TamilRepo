@@ -1,5 +1,5 @@
 - Corrections
 - Change version from addon.xml
 - Run generate_repo.py
-- Add to git (zip also)
+- Add to git (zip also) + Commit
 - Then Push
