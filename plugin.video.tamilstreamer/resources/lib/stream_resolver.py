@@ -1,8 +1,12 @@
 import re
 import helper as helper
-import pprint
-import json
+from xbmcswift2 import xbmc
 
+
+addon_id = 'plugin.video.tamilstreamer'
+icon_720 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_720.png'.format(addon_id))
+icon_360 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_360.png'.format(addon_id))
+icon_240 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_240.png'.format(addon_id))
 
 # To load Vidmad Video stream url
 def load_vidmad_video(url):
@@ -15,15 +19,27 @@ def load_vidmad_video(url):
     items = []
     for video in videofiles:
         url = None
-        quality = 'default'
+        quality = ''
 
         try:
             url = video.split('"')[1]
             quality = video.split('"')[3]
+            if quality == '720p':
+                quality_icon = icon_720
+
+            elif quality == '360p':
+                quality_icon = icon_360
+
+            elif quality == '240p':
+                quality_icon = icon_240
+
+            else:
+                quality = ''
+                quality_icon = ''
         except:
             pass
 
-        d = {'url': url, 'quality': quality}
+        d = {'url': url, 'quality': quality, 'quality_icon': quality_icon}
         items.append(d)
 
     return items
@@ -44,12 +60,22 @@ def load_fastplay_video(url):
         try:
             url = video.split('"')[1]
             quality = video.split('"')[3]
-            if quality not in ['720p','360p','240p']:
+            if quality == '720p':
+                quality_icon = icon_720
+
+            elif quality == '360p':
+                quality_icon = icon_360
+
+            elif quality == '240p':
+                quality_icon = icon_240
+
+            else:
                 quality = ''
+                quality_icon = ''
 
         except:
             pass
 
-        d = {'url': url, 'quality': quality}
+        d = {'url': url, 'quality': quality, 'quality_icon': quality_icon}
         items.append(d)
     return items
