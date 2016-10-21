@@ -33,9 +33,11 @@ def remove_duplicates(List):
 #  xbmc.executebuiltin('Container.SetViewMode(500)')
 
 def movie_name_resolver(name):
+    name = name.replace(u'\u2019', u'\'').encode('ascii', 'ignore') # to resolu sigle code encode probleme
     name = name.replace('Tamil Full Movie Watch Online', '')
     name = name.replace('Tamil Movie Watch Online', '')
     name = name.replace('Tamil Dubbed Movie', '')
     name = name.replace('Watch Online', '')
+    name = name.replace('720p', '')
     name = name.strip()
     return name

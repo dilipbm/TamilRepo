@@ -13,12 +13,24 @@ class TamilYogi(object):
 
     @property
     def get_site_name(self):
+        """
+        set site name
+        :return:
+        """
         return 'tamilyogi'
 
     def get_main_url(self):
+        """
+        site site main url
+        :return:
+        """
         return 'http://tamilyogi.cc/'
 
     def get_sections(self):
+        """
+        get all section for tamilyogi website
+        :return:
+        """
         sections = [{
             'name': 'Tamil New Movies',
             'url': 'http://tamilyogi.cc/category/tamilyogi-full-movie-online/',
@@ -28,11 +40,19 @@ class TamilYogi(object):
         }, {
             'name': 'Tamil DVDRip Movies',
             'url': 'http://tamilyogi.cc/category/tamilyogi-dvdrip-movies/'
+        }, {
+            'name': 'Tamil Dubbed Movies',
+            'url': 'http://tamilyogi.cc/category/tamilyogi-dubbed-movies-online/'
         }]
 
         return [section for section in sections if section['name'] and section['url']]
 
     def get_movies(self, url):
+        """
+        get all movies from given section url
+        :param url:
+        :return:
+        """
         movies = []
         added_items = []
         img = ''
@@ -71,7 +91,13 @@ class TamilYogi(object):
         return [movie for movie in movies if movie['name'] and movie['url']]
 
     def get_stream_urls(self, movie_name, url):
-
+        """
+        get stream urls from movie page url.
+        :param movie_name:
+        :param url:
+        :return:
+        """
+        stream_urls = None
         soup = helper.get_soup_from_url(url)
         l = soup.find_all('iframe')
         for iframe in l:
@@ -86,28 +112,24 @@ class TamilYogi(object):
             host = host.replace('.net', '')
             host = host.replace('.cc', '')
             host = host.replace('.sx', '')
-            hostName = host.capitalize()
 
 
-            if hostName == 'Vidmad':
-                steam_url = stream_resolver.load_vidmad_video(src)
+            if host.lower() == 'vidmad':
+                stream_urls = stream_resolver.load_vidmad_video(src)
 
-            elif hostName == 'vidmad':
-                steam_url = stream_resolver.load_vidmad_video(src)
-
-            elif hostName == 'Fastplay':
-                steam_url = stream_resolver.load_fastplay_video(src)
-
-            elif hostName == 'fastplay':
-                steam_url = stream_resolver.load_fastplay_video(src)
+            elif host.lower() == 'fastplay':
+                stream_urls = stream_resolver.load_fastplay_video(src)
 
             else:
-                # print 'Host ingored!!'
-                steam_url = None
+                print 'Host ingored!!'
 
-        stream_urls = [{
-            'name': movie_name,
-            'quality': 'HD',
-            'url': steam_url
-        }]
-        return [stream_url for stream_url in stream_urls if stream_url['name'] and stream_url['url']]
+
+                # stream_urls = [{
+                #     'name': movie_name,
+                #     'quality': 'HD',
+                #     'url': steam_url
+                # }]
+
+        return [{'name': movie_name,
+                 'quality': stream_url['quality'],
+                 'url': stream_url['url']} for stream_url in stream_urls if stream_url['url']]

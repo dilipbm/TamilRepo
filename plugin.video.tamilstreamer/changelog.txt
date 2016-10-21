@@ -1,0 +1,7 @@
+v1.0.0
+- Initial version
+
+v1.0.1
+- Minor bug
+v1.0.2
+- Minor bug
