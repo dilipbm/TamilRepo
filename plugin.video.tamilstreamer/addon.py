@@ -4,6 +4,10 @@ import pprint
 
 plugin = Plugin()
 
+icon_720 = 'https://raw.githubusercontent.com/dilipbm/TamilRepo/master/plugin.video.tamilstreamer/resources/images/icon_720.png'
+icon_360 = 'https://raw.githubusercontent.com/dilipbm/TamilRepo/master/plugin.video.tamilstreamer/resources/images/icon_360.png'
+icon_240 = 'https://raw.githubusercontent.com/dilipbm/TamilRepo/master/plugin.video.tamilstreamer/resources/images/icon_240.png'
+
 # SITE VIEW - MAIN VIEW
 @plugin.route('/')
 def index():
@@ -57,6 +61,8 @@ def movies_view(site_name, section_url):
 
     movies = site_api.get_movies(section_url)
     plugin.set_view_mode(500)
+    for movie in movies:
+        print movie['image']
 
     items = [{
                  'label': movie['name'],
@@ -90,6 +96,7 @@ def stream_list_view(site_name, movie_name, movie_url):
         stream_urls = site_api.get_stream_urls(movie_name, movie_url)
         items = [{'label': 'Play - ' + stream_url['name'] + '    ' + stream_url['quality'],
                   'label2': stream_url['quality'],
+                  #'icon':'icon_'+stream_url['quality'].replace('p',''),
                   'path': plugin.url_for('play_lecture', movie_name=stream_url['name'], stream_url=stream_url['url']),
                   'is_playable': True} for stream_url in stream_urls]
         return items

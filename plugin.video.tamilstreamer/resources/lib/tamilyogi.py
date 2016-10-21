@@ -6,7 +6,7 @@ import stream_resolver
     Main API for tamilyogi site
 '''
 
-icon_next = 'https://github.com/dilipbm/TamilRepo/blob/master/plugin.video.tamilstreamer/resources/images/next.png'
+icon_next = 'https://raw.githubusercontent.com/dilipbm/TamilRepo/master/plugin.video.tamilstreamer/resources/images/next.png'
 
 class TamilYogi(object):
     def __init__(self):
