@@ -6,6 +6,7 @@ import stream_resolver
     Main API for tamilyogi site
 '''
 
+icon_next = 'https://github.com/dilipbm/TamilRepo/blob/develop/plugin.video.tamilstreamer/resources/images/next.png'
 
 class TamilYogi(object):
     def __init__(self):
@@ -65,7 +66,7 @@ class TamilYogi(object):
                 if 'next' in nextpagetag:
                     next_page_url = a.get('href')
                     next_page = {'name': 'Next Page',
-                                 'image': '',
+                                 'image': icon_next,
                                  'url': next_page_url}
             except:
                 pass
