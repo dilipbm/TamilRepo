@@ -3,22 +3,32 @@ import urllib, urllib2
 from bs4 import BeautifulSoup
 
 def get_soup_from_url(url):
-  """
-  Help fonction that return a soup object from a url
-  """
-  proxy_handler = urllib2.ProxyHandler({})
-  opener = urllib2.build_opener(proxy_handler)
-  try:
-    req = urllib2.Request(url)
-    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-    r = opener.open(req)
-    html = r.read()
-  except urllib2.HTTPError, e:
-    html = e.fp.read()
-    pass
+    """
+    :param url:
+    :return:
+    Help fonction that return a soup object from a url
+    """
+    proxy_handler = urllib2.ProxyHandler({})
+    opener = urllib2.build_opener(proxy_handler)
+    try:
+        req = urllib2.Request(url)
+        opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+        r = opener.open(req)
+        html = r.read()
 
-  soup = BeautifulSoup(html, 'html.parser')
-  return soup
+    except urllib2.HTTPError, e:
+        html = e.fp.read()
+
+
+    try:
+        soup = BeautifulSoup(html, 'html.parser')
+        print type(html)
+    except:
+        html = html.replace('</bo"+"dy>', '</body>') # Correction html tag only for mac/android version for tamilyogi site
+        html = html.replace ('</ht"+"ml', '</html') # Correction html tag only for mac/android version for tamilyogi site
+        soup = BeautifulSoup(html, 'html.parser')
+
+    return soup
 
 #To remove duplicates in list
 def remove_duplicates(List):
