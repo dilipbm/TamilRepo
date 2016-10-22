@@ -1,12 +1,20 @@
 import helper
 import urllib2
 import stream_resolver
+from xbmcswift2 import xbmc
 
 '''
     Main API for tamilyogi site
 '''
 
-icon_next = 'https://github.com/dilipbm/TamilRepo/blob/master/plugin.video.tamilstreamer/resources/images/next.png'
+addon_id = 'plugin.video.tamilstreamer'
+icon_next = xbmc.translatePath('special://home/addons/{0}/resources/images/next.png'.format(addon_id))
+
+
+#icon_next = 'https://raw.githubusercontent.com/dilipbm/TamilRepo/master/plugin.video.tamilstreamer/resources/images/next.png'
+#icon_720 = 'https://raw.githubusercontent.com/dilipbm/TamilRepo/master/plugin.video.tamilstreamer/resources/images/icon_720.png'
+#icon_360 = 'https://raw.githubusercontent.com/dilipbm/TamilRepo/master/plugin.video.tamilstreamer/resources/images/icon_360.png'
+#icon_240 = 'https://raw.githubusercontent.com/dilipbm/TamilRepo/master/plugin.video.tamilstreamer/resources/images/icon_240.png'
 
 class TamilYogi(object):
     def __init__(self):
@@ -133,4 +141,5 @@ class TamilYogi(object):
 
         return [{'name': movie_name,
                  'quality': stream_url['quality'],
+                 'quality_icon': stream_url['quality_icon'],
                  'url': stream_url['url']} for stream_url in stream_urls if stream_url['url']]
