@@ -1,11 +1,8 @@
-from xbmcswift2 import Plugin, xbmc
+from xbmcswift2 import Plugin, ListItem, xbmc, xbmcgui
 from resources.lib import tamilyogi
 import pprint
 
 plugin = Plugin()
-
-
-
 
 
 # SITE VIEW - MAIN VIEW
@@ -15,6 +12,9 @@ def index():
     All site here
     :return:
     """
+
+    plugin.set_content('files')
+
     items = [
         {'label': 'Tamil Yogi',
          'path': plugin.url_for('section_view', site_name='tamilyogi')},
@@ -33,6 +33,8 @@ def section_view(site_name):
     :param site_name:
     :return:
     """
+
+    plugin.set_content('files')
 
     if site_name == 'tamilyogi':
         site_api = tamilyogi.TamilYogi()
@@ -60,14 +62,18 @@ def movies_view(site_name, section_url):
         site_api = tamilyogi.TamilYogi()
 
     movies = site_api.get_movies(section_url)
-    plugin.set_view_mode(500)
-    for movie in movies:
-        print movie['image']
+    # plugin.set_view_mode(500)
+    plugin.set_content('musicvideos')
+    #   for movie in movies:
+    #       print movie['image']
+
+    plugin.get_view_mode_id('wall')
 
     items = [{
                  'label': movie['name'],
                  'thumbnail': movie['image'],
-                 'path': plugin.url_for('stream_list_view', site_name=site_name, movie_name=movie['name'], movie_url=movie['url'])
+                 'path': plugin.url_for('stream_list_view', site_name=site_name, movie_name=movie['name'],
+                                        movie_url=movie['url'])
              } for movie in movies]
 
     return items
@@ -84,7 +90,7 @@ def stream_list_view(site_name, movie_name, movie_url):
     :return:
     """
 
-    plugin.set_view_mode(512)
+    plugin.set_content('files')
 
     # If hit Next page
     if movie_name == 'Next Page':
@@ -96,7 +102,7 @@ def stream_list_view(site_name, movie_name, movie_url):
         stream_urls = site_api.get_stream_urls(movie_name, movie_url)
         items = [{'label': 'Play - ' + stream_url['name'] + '    ' + stream_url['quality'],
                   'label2': stream_url['quality'],
-                  'icon':stream_url['quality_icon'],
+                  'icon': stream_url['quality_icon'],
                   'path': plugin.url_for('play_lecture', movie_name=stream_url['name'], stream_url=stream_url['url']),
                   'is_playable': True} for stream_url in stream_urls]
         return items
