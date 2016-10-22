@@ -4,5 +4,6 @@
 - merge develop (local)
 - Change version from addon.xml / changelog
 - Run generate_repo.py
+- Delete unused zip to repo dir
 - Add to git (zip also) + Commit
 - Then Push
