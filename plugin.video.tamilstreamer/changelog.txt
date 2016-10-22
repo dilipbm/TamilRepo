@@ -1,2 +1,5 @@
 v1.0.0
 - Initial version
+
+v1.0.3
+ - Correction bad tag html
