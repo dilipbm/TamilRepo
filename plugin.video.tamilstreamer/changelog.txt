@@ -3,3 +3,7 @@ v1.0.0
 
 v1.0.3
  - Correction bad tag html
+
+v1.0.4
+ - Add new hoster
+

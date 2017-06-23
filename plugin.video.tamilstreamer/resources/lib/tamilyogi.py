@@ -121,6 +121,7 @@ class TamilYogi(object):
             host = host.replace('.net', '')
             host = host.replace('.cc', '')
             host = host.replace('.sx', '')
+            host = host.replace('.to', '')
 
 
             if host.lower() == 'vidmad':

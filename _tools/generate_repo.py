@@ -43,7 +43,7 @@ class Generator:
         self._generate_md5_file()
         self._generate_zip_files()
         # notify user
-        print "Finished updating addons xml, md5 files and zipping addons"
+        print ("Finished updating addons xml, md5 files and zipping addons")
         
     def _pre_run ( self ):
 
@@ -63,7 +63,7 @@ class Generator:
 
         if os.path.isfile(addonid + os.path.sep + "addon.xml"):return
         
-        print "Create repository addon"
+        print ("Create repository addon")
         
         with open (self.tools_path + os.path.sep + "template.xml", "r") as template:
             template_xml=template.read()
@@ -104,11 +104,11 @@ class Generator:
                     version = parent.getAttribute("version")
                     addonid = parent.getAttribute("id")
                 self._generate_zip_file(addon, version, addonid)
-            except Exception, e:
-                print e
+            except Exception as e:
+                print (e)
 
     def _generate_zip_file ( self, path, version, addonid):
-        print "Generate zip file for " + addonid + " " + version
+        print ("Generate zip file for " + addonid + " " + version)
         filename = path + "-" + version + ".zip"
         try:
             zip = zipfile.ZipFile(filename, 'w')
@@ -124,8 +124,8 @@ class Generator:
             if os.path.isfile(self.output_path + addonid + os.path.sep + filename):
                 os.rename(self.output_path + addonid + os.path.sep + filename, self.output_path + addonid + os.path.sep + filename + "." + datetime.datetime.now().strftime("%Y%m%d%H%M%S") )
             shutil.move(filename, self.output_path + addonid + os.path.sep + filename)
-        except Exception, e:
-            print e
+        except Exception as e:
+            print (e)
 
     def _generate_addons_file( self ):
         # addon list
@@ -151,9 +151,9 @@ class Generator:
                     addon_xml += unicode( line.rstrip() + "\n", "utf-8" )
                 # we succeeded so add to our final addons.xml text
                 addons_xml += addon_xml.rstrip() + "\n\n"
-            except Exception, e:
+            except Exception as e:
                 # missing or poorly formatted addon.xml
-                print "Excluding %s for %s" % ( _path, e, )
+                print ("Excluding %s for %s" % ( _path, e, ))
         # clean and add closing tag
         addons_xml = addons_xml.strip() + u"\n</addons>\n"
         # save file
@@ -165,17 +165,17 @@ class Generator:
             m = md5.new( open(self.output_path +  "addons.xml" ).read() ).hexdigest()
             # save file
             self._save_file( m, file=self.output_path + "addons.xml.md5" )
-        except Exception, e:
+        except Exception as e:
             # oops
-            print "An error occurred creating addons.xml.md5 file!\n%s" % ( e, )
+            print ("An error occurred creating addons.xml.md5 file!\n%s" % ( e, ))
 
     def _save_file( self, data, file ):
         try:
             # write data to the file
             open( file, "w" ).write( data )
-        except Exception, e:
+        except Exception as e:
             # oops
-            print "An error occurred saving %s file!\n%s" % ( file, e, )
+            print ("An error occurred saving %s file!\n%s" % ( file, e, ))
 
 
 if ( __name__ == "__main__" ):
