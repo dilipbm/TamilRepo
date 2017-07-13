@@ -7,3 +7,5 @@ v1.0.3
 v1.0.4
  - Add new hoster
 
+v1.0.5
+ - Resolve fastplay error

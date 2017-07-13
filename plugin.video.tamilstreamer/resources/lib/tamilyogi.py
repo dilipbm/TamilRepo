@@ -112,6 +112,7 @@ class TamilYogi(object):
         for iframe in l:
             print 'in get_Stream_url'
 
+
             src = iframe.get('src')
             link = urllib2.urlparse.urlsplit(src)
             host = link.hostname
@@ -123,6 +124,7 @@ class TamilYogi(object):
             host = host.replace('.sx', '')
             host = host.replace('.to', '')
 
+            print 'hostname is ---> ' + host
 
             if host.lower() == 'vidmad':
                 stream_urls = stream_resolver.load_vidmad_video(src)
