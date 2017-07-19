@@ -9,3 +9,7 @@ v1.0.4
 
 v1.0.5
  - Resolve fastplay error
+
+v1.1.0
+ - Add search module
+

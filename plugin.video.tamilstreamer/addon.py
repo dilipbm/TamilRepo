@@ -37,7 +37,7 @@ def section_view(site_name):
     plugin.set_content('files')
 
     if site_name == 'tamilyogi':
-        site_api = tamilyogi.TamilYogi()
+        site_api = tamilyogi.TamilYogi(plugin)
 
     sections = site_api.get_sections()
 
@@ -59,7 +59,7 @@ def movies_view(site_name, section_url):
     :return:
     """
     if site_name == 'tamilyogi':
-        site_api = tamilyogi.TamilYogi()
+        site_api = tamilyogi.TamilYogi(plugin)
 
     movies = site_api.get_movies(section_url)
     # plugin.set_view_mode(500)
@@ -98,9 +98,9 @@ def stream_list_view(site_name, movie_name, movie_url):
 
     else:
         if site_name == 'tamilyogi':
-            site_api = tamilyogi.TamilYogi()
+            site_api = tamilyogi.TamilYogi(plugin)
         stream_urls = site_api.get_stream_urls(movie_name, movie_url)
-        items = [{'label': 'Play - ' + stream_url['name'] + '    ' + stream_url['quality'],
+        items = [{'label': stream_url['name'] + ' | ' + stream_url['quality'],
                   'label2': stream_url['quality'],
                   'icon': stream_url['quality_icon'],
                   'path': plugin.url_for('play_lecture', movie_name=stream_url['name'], stream_url=stream_url['url']),
@@ -118,8 +118,10 @@ def play_lecture(movie_name, stream_url):
     """
     plugin.log.info('Playing url: %s' % stream_url)
     plugin.set_resolved_url(stream_url)
-    plugin.notify(msg=movie_name, title='Now Playing')
+    #plugin.notify(msg=movie_name, title='Now Playing')
 
 
 if __name__ == '__main__':
     plugin.run()
+
+

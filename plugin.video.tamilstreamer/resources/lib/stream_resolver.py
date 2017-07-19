@@ -83,6 +83,8 @@ def load_vidmad_video(url):
 
 
 def load_fastplay_video(url):
+
+    print (url)
     soup = helper.get_soup_from_url(url)
 
     #Getting host
@@ -103,8 +105,14 @@ def load_fastplay_video(url):
             url = 'http://' + host + '/' + matches[0] + '/' + 'v.mp4'
             d = {'url': url, 'quality': '360p', 'quality_icon': icon_360}
             items.append(d)
+
+        matches = re.findall('mp4\|(.*?)\|', str(soup))
+        if len(matches) > 0:
+            url = 'http://' + host + '/' + matches[0] + '/' + 'v.mp4'
+            d = {'url': url, 'quality': '240p', 'quality_icon': icon_240}
+            items.append(d)
     except:
         print ('Unaible to get video ligne from fastplay.to')
 
-    print items
+    #print items
     return items

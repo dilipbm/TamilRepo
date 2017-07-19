@@ -17,8 +17,8 @@ icon_next = xbmc.translatePath('special://home/addons/{0}/resources/images/next.
 #icon_240 = 'https://raw.githubusercontent.com/dilipbm/TamilRepo/master/plugin.video.tamilstreamer/resources/images/icon_240.png'
 
 class TamilYogi(object):
-    def __init__(self):
-        pass
+    def __init__(self, plugin):
+        self.plugin = plugin
 
     @property
     def get_site_name(self):
@@ -40,19 +40,17 @@ class TamilYogi(object):
         get all section for tamilyogi website
         :return:
         """
-        sections = [{
-            'name': 'Tamil New Movies',
-            'url': 'http://tamilyogi.cc/category/tamilyogi-full-movie-online/',
-        }, {
-            'name': 'Tamil Bluray Movies',
-            'url': 'http://tamilyogi.cc/category/tamilyogi-bluray-movies/',
-        }, {
-            'name': 'Tamil DVDRip Movies',
-            'url': 'http://tamilyogi.cc/category/tamilyogi-dvdrip-movies/'
-        }, {
-            'name': 'Tamil Dubbed Movies',
-            'url': 'http://tamilyogi.cc/category/tamilyogi-dubbed-movies-online/'
-        }]
+        sections = [{   'name': 'Tamil New Movies',
+                        'url': 'http://tamilyogi.cc/category/tamilyogi-full-movie-online/',},
+                    {'name': 'Tamil Bluray Movies',
+                    'url': 'http://tamilyogi.cc/category/tamilyogi-bluray-movies/',},
+                    {'name': 'Tamil DVDRip Movies',
+                     'url': 'http://tamilyogi.cc/category/tamilyogi-dvdrip-movies/'},
+                    {'name': 'Tamil Dubbed Movies',
+                     'url': 'http://tamilyogi.cc/category/tamilyogi-dubbed-movies-online/'},
+                    {'name': 'Search',
+                     'url': 'http://tamilyogi.cc/?s='}
+                    ]
 
         return [section for section in sections if section['name'] and section['url']]
 
@@ -65,6 +63,12 @@ class TamilYogi(object):
         movies = []
         added_items = []
         img = ''
+        next_page = {}
+
+        if url == 'http://tamilyogi.cc/?s=':
+            s = self.plugin.keyboard("", "Search for movie name")
+            url += str(s)
+
         soup = helper.get_soup_from_url(url)
 
         for a in soup.find_all('a'):
@@ -95,7 +99,11 @@ class TamilYogi(object):
                         added_items.append(title)
                 except:
                     pass
-        movies.append(next_page)
+        if bool(next_page): #If next page
+            movies.append(next_page)
+
+        if len(movies) == 0:
+            self.plugin.notify(msg="404 No movies found", title='Not found')
 
         return [movie for movie in movies if movie['name'] and movie['url']]
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addons>
-<addon id="plugin.video.tamilstreamer" name="TamilStreamer" version="1.0.5" provider-name="Dilip">
+<addon id="plugin.video.tamilstreamer" name="TamilStreamer" version="1.1.0" provider-name="Dilip">
   <requires>
     <import addon="xbmc.python" version="2.24.0"/>
     <import addon="script.module.xbmcswift2" version="2.4.0"/>

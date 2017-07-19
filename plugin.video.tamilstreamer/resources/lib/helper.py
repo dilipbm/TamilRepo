@@ -22,7 +22,7 @@ def get_soup_from_url(url):
 
     try:
         soup = BeautifulSoup(html, 'html.parser')
-        print type(html)
+        #rint type(html)
     except:
         html = html.replace('</bo"+"dy>', '</body>') # Correction html tag only for mac/android version for tamilyogi site
         html = html.replace ('</ht"+"ml', '</html') # Correction html tag only for mac/android version for tamilyogi site
