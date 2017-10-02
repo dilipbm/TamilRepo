@@ -64,6 +64,7 @@ class TamilYogi(object):
         added_items = []
         img = ''
         next_page = {}
+        infos = {}
 
         if url == 'http://tamilyogi.cc/?s=':
             s = self.plugin.keyboard("", "Search for movie name")
@@ -79,6 +80,7 @@ class TamilYogi(object):
                     next_page_url = a.get('href')
                     next_page = {'name': 'Next Page',
                                  'image': icon_next,
+                                 'infos':{},
                                  'url': next_page_url}
             except:
                 pass
@@ -91,10 +93,8 @@ class TamilYogi(object):
             if (title is not None) and (title != 'Tamil Movie Online') and img != '':
                 try:
                     if title not in added_items:
-                        d = {'name': helper.movie_name_resolver(title),
-                             'image': img,
-                             'url': a.get('href')
-                             }
+                        d = dict(name=helper.movie_name_resolver(title), image=img, url=a.get('href'),
+                                 infos={'title': helper.movie_name_resolver(title)})
                         movies.append(d)
                         added_items.append(title)
                 except:
