@@ -23,26 +23,30 @@ CLIENT_VERSION = '0.1.0'
 class Lebera(object):
     def __init__(self, plugin):
         self.plugin = plugin
+        self.storage = plugin.get_storage('lebera_storage', TTL=1440)
+        self.storage_deviceinfo = plugin.get_storage('lebera_device', TTL=None)
+
         self.device_id = self._get_device_id()
         #print (plugin.list_storages())
-        self.storage = plugin.get_storage('lebera_storage', TTL=1440)
+
         #print (self.storage.keys())
         #self.storage.clear()
         #print (self.storage.keys())
         if 'access_token' in self.storage.keys():
             self.access_token = self.storage['access_token']
         #self.access_token = self._login()
-        #self._register_device() # Only register for the first time
+
+        self._register_device()
 
     def _get_device_id(self):
-        lebera_device = self.plugin.get_storage('lebera_device', TTL=None)
-        if 'device_id' in lebera_device.keys():
-            print ('Device ID : {}'.format(lebera_device['device_id']))
-            return lebera_device['device_id']
+
+        if 'device_id' in self.storage_deviceinfo.keys():
+            print ('Device ID : {}'.format(self.storage_deviceinfo['device_id']))
+            return self.storage_deviceinfo['device_id']
         else:
             device_id = uuid.uuid4()
             print('Device ID not found. Creating new device ID : {}'.format(device_id))
-            lebera_device['device_id'] = str(device_id)
+            self.storage_deviceinfo['device_id'] = str(device_id)
 
     def _login(self):
         # Verifi if access_token already in local storage
@@ -126,38 +130,41 @@ class Lebera(object):
             print ('Error logout')
 
     def _register_device(self):
-        headers = {
-            'Origin': 'http://play.lebara.com',
-            'Accept-Encoding': 'gzip, deflate',
-            'Accept-Language': 'fr-FR,fr;q=0.8,en-US;q=0.6,en;q=0.4',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': 'application/json',
-            'Referer': 'http://play.lebara.com/fr/en/Tamil/',
-            'Connection': 'keep-alive',
-        }
-        data = [
-            ('client_id', CLIENT_ID),
-            ('client_version', CLIENT_VERSION),
-            ('locale', LOCALE),
-            ('timezone', TIMEZONE),
-            ('os', 'nix'),
-            ('os_version', '10'),
-            ('type', 'desktop'),
-            ('model', 'chrome'),
-            ('device_id', self.device_id),
-            ('name', 'nix-chrome'),
-            ('access_token', self.access_token),
-        ]
 
-        print ('Registering device {}'.format(self.device_id))
-        url = 'http://api.lebaraplay.com/api/v1/user/devices'
-        r = requests.post(url, headers=headers, data=data)
-        if r.status_code == 201:
-            print ('Device succefully registered')
-        else:
-            print ('Erreur device registration')
-            print (r.json())
+        print (self.storage_deviceinfo.items())
+        if 'registered' not in self.storage_deviceinfo.keys():
+            headers = {
+                'Origin': 'http://play.lebara.com',
+                'Accept-Encoding': 'gzip, deflate',
+                'Accept-Language': 'fr-FR,fr;q=0.8,en-US;q=0.6,en;q=0.4',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json',
+                'Referer': 'http://play.lebara.com/fr/en/Tamil/',
+                'Connection': 'keep-alive',
+            }
+            data = [
+                ('client_id', CLIENT_ID),
+                ('client_version', CLIENT_VERSION),
+                ('locale', LOCALE),
+                ('timezone', TIMEZONE),
+                ('os', 'nix'),
+                ('os_version', '10'),
+                ('type', 'desktop'),
+                ('model', 'chrome'),
+                ('device_id', self.device_id),
+                ('name', 'nix-chrome'),
+                ('access_token', self.access_token),
+            ]
+            print ('Registering device {}'.format(self.device_id))
+            url = 'http://api.lebaraplay.com/api/v1/user/devices'
+            r = requests.post(url, headers=headers, data=data)
+            if r.status_code == 201:
+                print ('Device succefully registered')
+                self.storage_deviceinfo['registered'] = True
+            else:
+                print ('Erreur device registration')
+                print (r.json())
 
     # def get_device_id(self):
     #     # Device id
@@ -201,29 +208,39 @@ class Lebera(object):
 
         return [channel for channel in chs if channel['name'] and channel['url'] and channel['channel_id']]
 
-    def get_stream_type(self, channel_id):
+    def _get_stream_type(self, channel_id):
         # Stream TYPE
+
+        headers = {
+            'Origin': 'http://play.lebara.com',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'fr-FR,fr;q=0.8,en-US;q=0.6,en;q=0.4',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json',
+            'Referer': 'http://play.lebara.com/fr/en/Tamil/',
+            'Connection': 'keep-alive',
+        }
 
         if self.access_token == None:
             print ('Error login')
 
         if self.device_id == None:
             print ('Error device ID')
-            device_id = self.get_device_id()
-            if device_id != None:
-                print('OK dew device Id {}'.format(device_id))
-                self.device_id = device_id
 
         url = 'http://api.lebaraplay.com/api/v1/channels/{}/stream_types'.format(channel_id)
         params = (
-            ('client_id', self.client_id),
-            ('client_version', self.client_version),
-            ('locale', self.locale),
-            ('timezone', self.timezone),
+            ('client_id', CLIENT_ID),
+            ('client_version', CLIENT_VERSION),
+            ('locale', LOCALE),
+            ('timezone', TIMEZONE),
             ('access_token', self.access_token),
         )
 
-        r = requests.get(url, headers=self.headers, params=params)
+        r = requests.get(url, headers=headers, params=params)
+        if r.status_code != 200:
+            print ('Can not get stream type for channel {}'.format(channel_id))
+
         return r.json()['stream_types'][0]
 
     def heartbeat(self, hb):
@@ -238,31 +255,37 @@ class Lebera(object):
 
         print('Hearbeat stoped!!!')
 
-    def get_stream(self, channel_id):
+    def get_stream(self, channel_id, live=False):
         # Get stream adresse
-        # /fr/en/Tamil/channel/maa-channel-2-43707b
+
+        headers = {
+            'Origin': 'http://play.lebara.com',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'fr-FR,fr;q=0.8,en-US;q=0.6,en;q=0.4',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json',
+            'Referer': 'http://play.lebara.com/fr/en/Tamil/',
+            'Connection': 'keep-alive',
+        }
 
         if self.access_token == None:
             print ('Error login')
 
         if self.device_id == None:
             print ('Error device ID')
-            device_id = self.get_device_id()
-            if device_id != None:
-                print('OK dew device Id {}'.format(device_id))
-                self.device_id = device_id
 
-        stream_type = self.get_stream_type(channel_id)
+        stream_type = self._get_stream_type(channel_id)
         if stream_type == None:
             print ('Error get stream type')
 
         url = 'http://api.lebaraplay.com/api/v1/channels/{}/stream'.format(channel_id)
 
         params = (
-            ('client_id', self.client_id),
-            ('client_version', self.client_version),
-            ('locale', self.locale),
-            ('timezone', self.timezone),
+            ('client_id', CLIENT_ID),
+            ('client_version', CLIENT_VERSION),
+            ('locale', LOCALE),
+            ('timezone', TIMEZONE),
             ('screen_width', '1280'),
             ('screen_height', '720'),
             ('drm', 'clearkey'),
@@ -274,16 +297,17 @@ class Lebera(object):
             ('access_token', self.access_token),
         )
 
-        r = requests.get(url, headers=self.headers, params=params)
-        # print (r.json())
+        r = requests.get(url, headers=headers, params=params)
+        print (r.request)
+        print (r.json())
         if r.status_code != 200:
             print ('Error requete')
 
         # print (r.json()['stream']['url'])
         hb = r.json()['stream']['heartbeat']
         self.t = threading.Thread(target=self.heartbeat, args=(hb,))
-        self.t.start()
-        # self.heartbeat(hb)
+        #self.t.start()
+
         return r.json()['stream']['url']
 
     def stop_stream(self):
@@ -313,11 +337,15 @@ class Lebera(object):
         sections = [
             {
                 'name': 'Live TV',
-                'url': ''
+                'slug' : 'livetv'
             },
             {
-                'name': 'Movies',
-                'url': ''
+                'name' : 'Replay',
+                'slug' : 'replay'
+            },
+            {
+                'name' : 'Movies',
+                'slug' : 'movies'
             }]
 
         return [section for section in sections if section['name']]

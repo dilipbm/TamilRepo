@@ -62,14 +62,14 @@ def section_view(site_name):
         sections = site_api.get_sections()
 
         for section in sections:
-            print (section)
-            if section['name'] == 'Live TV':
-                d = {'label': section['name'], 'path': plugin.url_for('channels_view')}
-                items.append(d)
+             print (section)
+             if section['slug'] == 'livetv':
+                 d = {'label': section['name'], 'path': plugin.url_for('channels_view', refer=section['slug'])}
+                 items.append(d)
 
-            # if section['name'] == 'Movies':
-            #     d = {'label': section['name'], 'path': plugin.url_for('movies_view', site_name=site_name)}
-            #     items.append(d)
+        #if section['name'] == 'Movies':
+        #    d = {'label': section['name'], 'path': plugin.url_for('movies_view', site_name=site_name)}
+        #    items.append(d)
 
     return items
 
@@ -96,16 +96,25 @@ def week_view():
 
     return items
 
-@plugin.route('/channels/')
-def channels_view():
+@plugin.route('/channels/<refer>')
+def channels_view(refer):
     site_api = lebera.Lebera(plugin)
 
-    items = [{
+    if refer == 'livetv':
+        items = [{
                  'label': channel['name'],
-                 'path': plugin.url_for('week_view', channel_id=channel['channel_id']),
+                 'path': plugin.url_for('lebera_play', channel_name=channel['name'], channel_id=channel['channel_id']),
              } for channel in site_api.get_channels()]
 
     return items
+
+@plugin.route('/lebera_play/<channel_name>/<channel_id>')
+def lebera_play(channel_name, channel_id):
+    site_api = lebera.Lebera(plugin)
+    stream_url = site_api.get_stream(channel_id, live=True)
+    print ('OK stream url got : {}'.format(stream_url))
+    plugin.redirect(plugin.url_for('play_lecture', movie_name=channel_name, stream_url=stream_url))
+
 
 # MOVIES VIEW
 @plugin.route('/movies/<site_name>/<section_url>')
