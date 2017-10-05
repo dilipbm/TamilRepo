@@ -2,6 +2,7 @@ from xbmcswift2 import Plugin, ListItem, xbmc, xbmcgui
 from resources.lib import tamilyogi, tamilrasigan, lebera
 import pprint
 from datetime import datetime, timedelta
+import time as timee
 plugin = Plugin()
 
 
@@ -56,6 +57,7 @@ def section_view(site_name):
 
     if site_name == 'lebera':
         site_api = lebera.Lebera(plugin)
+        site_api._login()
         items = []
         sections = site_api.get_sections()
 
@@ -83,8 +85,6 @@ def epg_view(date):
     print ('selected date {}'.format(url))
 
 
-
-
 @plugin.route('/week/')
 def week_view():
     site_api = lebera.Lebera(plugin)
@@ -99,9 +99,10 @@ def week_view():
 @plugin.route('/channels/')
 def channels_view():
     site_api = lebera.Lebera(plugin)
+
     items = [{
                  'label': channel['name'],
-                 'path': plugin.url_for('week_view'),
+                 'path': plugin.url_for('week_view', channel_id=channel['channel_id']),
              } for channel in site_api.get_channels()]
 
     return items
@@ -127,7 +128,7 @@ def movies_view(site_name, section_url):
     #   for movie in movies:
     #       print movie['image']
 
-    plugin.get_view_mode_id('wall')
+    #plugin.get_view_mode_id('wall')
 
     items = [{
                  'label': movie['name'],
