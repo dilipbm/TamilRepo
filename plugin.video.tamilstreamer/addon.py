@@ -124,7 +124,7 @@ def lebera_play(channel_name, channel_id):
     print ('######## Start to play')
     plugin.play_video(item)
     print ('######## OK to player start heartbeat')
-    site_api.heartbeat(heartbeat)
+    site_api.start_heartbeat(heartbeat)
 
 
     #return [{
