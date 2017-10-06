@@ -256,20 +256,23 @@ class Lebera(object):
 
         return r.json()['stream_types'][0]
 
-    def heartbeat(self, hb):
+
+    def start_heartbeat(self, hb):
+        self.t = threading.Thread(target=self._heartbeat, args=(hb,))
+        self.t.start()
+
+    def _heartbeat(self, hb):
+        print ('######### in hearbeat')
         t = threading.currentThread()
         url = hb['url']
         interval = hb['interval']
         i = 0
-        while getattr(t, "do_heartbeat", True):
-            if i == 30:
-                t.do_heartbeat = False
+        while (xbmc.Player().isPlayingVideo() or i < 2):
             print ('##### valeur i {}'.format(i))
             print (url)
             requests.get(url)
             time.sleep(interval)
             i += 1
-
         print('Hearbeat stoped!!!')
 
     def get_stream(self, channel_id, live):
@@ -325,8 +328,7 @@ class Lebera(object):
 
         # print (r.json()['stream']['url'])
         hb = r.json()['stream']['heartbeat']
-        #self.t = threading.Thread(target=self.heartbeat, args=(hb,))
-        #self.t.start()
+
 
         stream_url = r.json()['stream']['url']
         if live:
