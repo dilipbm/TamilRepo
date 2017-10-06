@@ -26,7 +26,7 @@ class Lebera(object):
         self.storage = plugin.get_storage('lebera_storage', TTL=1440)
         self.storage_deviceinfo = plugin.get_storage('lebera_device', TTL=None)
 
-        self.device_id = self._get_device_id()
+        self.device_id, self.device_registered = self._get_deviceinfo()
         #print (plugin.list_storages())
 
         #print (self.storage.keys())
@@ -36,17 +36,27 @@ class Lebera(object):
             self.access_token = self.storage['access_token']
         #self.access_token = self._login()
 
-        self._register_device()
 
-    def _get_device_id(self):
+
+    def _get_deviceinfo(self):
 
         if 'device_id' in self.storage_deviceinfo.keys():
             print ('Device ID : {}'.format(self.storage_deviceinfo['device_id']))
-            return self.storage_deviceinfo['device_id']
+            device_id = self.storage_deviceinfo['device_id']
+            try:
+                device_registered = self.storage_deviceinfo['registered']
+            except KeyError:
+                self.storage_deviceinfo['registered'] = False
+                device_registered = False
+
         else:
             device_id = uuid.uuid4()
             print('Device ID not found. Creating new device ID : {}'.format(device_id))
             self.storage_deviceinfo['device_id'] = str(device_id)
+            self.storage_deviceinfo['registered'] = False
+            device_registered = False
+
+        return device_id, device_registered
 
     def _login(self):
         # Verifi if access_token already in local storage
@@ -131,9 +141,7 @@ class Lebera(object):
 
     def _register_device(self):
 
-        print (self.storage_deviceinfo.items())
-        if 'registered' not in self.storage_deviceinfo.keys():
-            headers = {
+        headers = {
                 'Origin': 'http://play.lebara.com',
                 'Accept-Encoding': 'gzip, deflate',
                 'Accept-Language': 'fr-FR,fr;q=0.8,en-US;q=0.6,en;q=0.4',
@@ -143,7 +151,7 @@ class Lebera(object):
                 'Referer': 'http://play.lebara.com/fr/en/Tamil/',
                 'Connection': 'keep-alive',
             }
-            data = [
+        data = [
                 ('client_id', CLIENT_ID),
                 ('client_version', CLIENT_VERSION),
                 ('locale', LOCALE),
@@ -156,15 +164,20 @@ class Lebera(object):
                 ('name', 'nix-chrome'),
                 ('access_token', self.access_token),
             ]
-            print ('Registering device {}'.format(self.device_id))
-            url = 'http://api.lebaraplay.com/api/v1/user/devices'
-            r = requests.post(url, headers=headers, data=data)
-            if r.status_code == 201:
-                print ('Device succefully registered')
+        print ('Registering device {}'.format(self.device_id))
+        url = 'http://api.lebaraplay.com/api/v1/user/devices'
+        r = requests.post(url, headers=headers, data=data)
+        if r.status_code == 201:
+            print ('Device succefully registered')
+            self.storage_deviceinfo['registered'] = True
+        else:
+            print (r.json())
+            if r.json()['meta']['error_type'] == 'already_linked_to_this_user':
+                print ('Device aleady linked')
                 self.storage_deviceinfo['registered'] = True
             else:
                 print ('Erreur device registration')
-                print (r.json())
+
 
     # def get_device_id(self):
     #     # Device id
@@ -247,16 +260,23 @@ class Lebera(object):
         t = threading.currentThread()
         url = hb['url']
         interval = hb['interval']
-
+        i = 0
         while getattr(t, "do_heartbeat", True):
+            if i == 30:
+                t.do_heartbeat = False
+            print ('##### valeur i {}'.format(i))
             print (url)
             requests.get(url)
             time.sleep(interval)
+            i += 1
 
         print('Hearbeat stoped!!!')
 
-    def get_stream(self, channel_id, live=False):
+    def get_stream(self, channel_id, live):
         # Get stream adresse
+
+        if not self.device_registered:
+            self._register_device()
 
         headers = {
             'Origin': 'http://play.lebara.com',
@@ -305,10 +325,14 @@ class Lebera(object):
 
         # print (r.json()['stream']['url'])
         hb = r.json()['stream']['heartbeat']
-        self.t = threading.Thread(target=self.heartbeat, args=(hb,))
+        #self.t = threading.Thread(target=self.heartbeat, args=(hb,))
         #self.t.start()
 
-        return r.json()['stream']['url']
+        stream_url = r.json()['stream']['url']
+        if live:
+            stream_url = stream_url.split('?')[0]
+
+        return stream_url, hb
 
     def stop_stream(self):
         self.t.do_heartbeat = False

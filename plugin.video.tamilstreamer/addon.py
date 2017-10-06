@@ -2,6 +2,7 @@ from xbmcswift2 import Plugin, ListItem, xbmc, xbmcgui
 from resources.lib import tamilyogi, tamilrasigan, lebera
 import pprint
 from datetime import datetime, timedelta
+import ast
 import time as timee
 plugin = Plugin()
 
@@ -111,9 +112,25 @@ def channels_view(refer):
 @plugin.route('/lebera_play/<channel_name>/<channel_id>')
 def lebera_play(channel_name, channel_id):
     site_api = lebera.Lebera(plugin)
-    stream_url = site_api.get_stream(channel_id, live=True)
+    stream_url, heartbeat = site_api.get_stream(channel_id, live=True)
+
     print ('OK stream url got : {}'.format(stream_url))
-    plugin.redirect(plugin.url_for('play_lecture', movie_name=channel_name, stream_url=stream_url))
+
+    item = {
+        'label': channel_name,
+        'path': stream_url,
+    }
+
+    print (heartbeat)
+    site_api.heartbeat(heartbeat)
+    plugin.play_video(item)
+
+    #return [{
+    #    'label' : 'Play',
+    #    'path': plugin.url_for('lebera_lecture', stream_url=stream_url, heartbeat=str(heartbeat)),
+    #    'is_playable': True
+    #}]
+    #plugin.redirect(plugin.url_for('play_lecture', movie_name=channel_name, stream_url=stream_url))
 
 
 # MOVIES VIEW
@@ -179,6 +196,18 @@ def stream_list_view(site_name, movie_name, movie_url):
         return items
 
 
+# @plugin.route('/lebera_lecture/<stream_url>/<heartbeat>/')
+# def lebera_lecture(stream_url, heartbeat):
+#     print ('####### in lecture')
+#     print (type(heartbeat))
+#     print (stream_url)
+#     print (heartbeat)
+#
+#     plugin.set_resolved_url(stream_url)
+#     site_api = lebera.Lebera(plugin)
+#     site_api.heartbeat(ast.literal_eval(heartbeat))
+
+
 @plugin.route('/lectures/<movie_name>/<stream_url>/')
 def play_lecture(movie_name, stream_url):
     """
@@ -187,9 +216,12 @@ def play_lecture(movie_name, stream_url):
     :param stream_url:
     :return:
     """
+
     plugin.log.info('Playing url: %s' % stream_url)
     plugin.set_resolved_url(stream_url)
     #plugin.notify(msg=movie_name, title='Now Playing')
+
+
 
 
 if __name__ == '__main__':
