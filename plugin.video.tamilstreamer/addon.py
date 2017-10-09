@@ -58,15 +58,18 @@ def section_view(site_name):
 
     if site_name == 'lebera':
         site_api = lebera.Lebera(plugin)
-        site_api._login()
+        site_api.manage_connexion()
         items = []
         sections = site_api.get_sections()
 
         for section in sections:
-             print (section)
-             if section['slug'] == 'livetv':
-                 d = {'label': section['name'], 'path': plugin.url_for('channels_view', refer=section['slug'])}
-                 items.append(d)
+            print (section)
+            if section['slug'] == 'livetv':
+                d = {'label': section['name'], 'path': plugin.url_for('channels_view', refer=section['slug'])}
+                items.append(d)
+            elif section['slug'] == 'replay':
+                d = {'label': section['name'], 'path': plugin.url_for('channels_view', refer=section['slug'])}
+                items.append(d)
 
         #if section['name'] == 'Movies':
         #    d = {'label': section['name'], 'path': plugin.url_for('movies_view', site_name=site_name)}
@@ -75,24 +78,27 @@ def section_view(site_name):
     return items
 
 
-@plugin.route('/epg/<date>')
-def epg_view(date):
+@plugin.route('/epg/<date>/<channel_id>')
+def epg_view(date, channel_id):
+    date += 'T00:00:00.000Z'
     start = datetime.strptime(date, '%Y-%m-%dT00:00:00.000Z')
     end = datetime.strptime(date, '%Y-%m-%dT23:30:00.000Z')
-    url = 'http://api.lebaraplay.com/api/v1/epg/events?client_id=spbtv-web&client_version=0.1.0&locale=en_GB&timezone=7200&channels[]=maa-channel-2-43707b&from_date={}&to_date={}'.format(
-        start, end
+    url = 'http://api.lebaraplay.com/api/v1/epg/events?client_id=spbtv-web&client_version=0.1.0&locale=en_GB&timezone=7' \
+          '200&channels[]={}&from_date={}&to_date={}'.format(
+        channel_id,start, end
     )
 
     print ('selected date {}'.format(url))
 
 
-@plugin.route('/week/')
-def week_view():
+@plugin.route('/week/<channel_id>/<channel_name>')
+def week_view(channel_id, channel_name):
     site_api = lebera.Lebera(plugin)
     print (site_api.get_lastweekdays())
+    print (type(site_api.get_lastweekdays()[0]))
     items = [{
                  'label': day,
-                 'path': plugin.url_for('epg_view', date=day),
+                 'path': plugin.url_for('epg_view', date=day, channel_id=channel_id),
              } for day in site_api.get_lastweekdays()]
 
     return items
@@ -106,6 +112,14 @@ def channels_view(refer):
                  'label': channel['name'],
                  'path': plugin.url_for('lebera_play', channel_name=channel['name'], channel_id=channel['channel_id']),
              } for channel in site_api.get_channels()]
+
+    elif refer == 'replay':
+        items = [{
+                     'label': channel['name'],
+                     'path': plugin.url_for('week_view', channel_name=channel['name'],
+                                            channel_id=channel['channel_id']),
+                 } for channel in site_api.get_channels()]
+
 
     return items
 

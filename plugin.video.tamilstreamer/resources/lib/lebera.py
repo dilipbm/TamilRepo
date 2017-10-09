@@ -37,7 +37,6 @@ class Lebera(object):
         #self.access_token = self._login()
 
 
-
     def _get_deviceinfo(self):
 
         if 'device_id' in self.storage_deviceinfo.keys():
@@ -58,11 +57,33 @@ class Lebera(object):
 
         return device_id, device_registered
 
+    def manage_connexion(self):
+
+        if hasattr(self, 'access_token'):
+            if not self.is_valide_token():
+                self._logout(self.access_token)
+                self._login()
+        else:
+            self._login()
+
+
+    def is_valide_token(self):
+        if 'access_token' in self.storage.keys():
+            r = self._get_user(self.storage['access_token'])
+            if r['meta']['status'] == 200:
+                return True
+            elif r['meta']['status'] == 401:
+                return False
+
+
     def _login(self):
         # Verifi if access_token already in local storage
         #storage = self.plugin.get_storage('lebera_storage', TTL=1440)
 
         #self.storage.pop('access_token')
+
+        print ('Login process start')
+
         if 'access_token' in self.storage.keys():
             self._logout(self.storage['access_token'])
 
@@ -138,6 +159,37 @@ class Lebera(object):
 
         else:
             print ('Error logout')
+
+
+    def _get_user(self, access_token):
+
+        headers = {
+            'Origin': 'http://play.lebara.com',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'fr-FR,fr;q=0.8,en-US;q=0.6,en;q=0.4',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json',
+            'Referer': 'http://play.lebara.com/fr/en/Tamil/',
+            'Connection': 'keep-alive',
+        }
+
+        params = (
+            ('client_id', CLIENT_ID),
+            ('client_version', CLIENT_VERSION),
+            ('locale', LOCALE),
+            ('timezone', TIMEZONE),
+            ('access_token', access_token),
+        )
+
+        url = 'http://api.lebaraplay.com/api/v1/user'
+        r = requests.get(url, headers=headers, params=params)
+        try:
+            res = r.json()
+        except:
+            res = None
+
+        return res
 
     def _register_device(self):
 
