@@ -18,6 +18,7 @@ LOCALE = 'en_GB'
 TIMEZONE = '7200'
 CLIENT_ID = 'spbtv-web'
 CLIENT_VERSION = '0.1.0'
+TIMEOFFSET = 5400
 
 
 class Lebera(object):
@@ -314,21 +315,29 @@ class Lebera(object):
         self.t.start()
 
     def _heartbeat(self, hb):
-        print ('######### in hearbeat')
+        #print ('######### in hearbeat')
         t = threading.currentThread()
         url = hb['url']
         interval = hb['interval']
         i = 0
         while (xbmc.Player().isPlayingVideo() or i < 2):
-            print ('##### valeur i {}'.format(i))
+        #while (i < 1):
+            #print ('##### valeur i {}'.format(i))
             print (url)
             requests.get(url)
             time.sleep(interval)
             i += 1
         print('Hearbeat stoped!!!')
 
-    def get_stream(self, channel_id, live):
+    def get_stream(self, channel_id, start=None):
         # Get stream adresse
+        live = False
+        replay = False
+
+        if start == None:
+            live = True
+        else:
+            replay = True
 
         if not self.device_registered:
             self._register_device()
@@ -384,7 +393,17 @@ class Lebera(object):
 
         stream_url = r.json()['stream']['url']
         if live:
-            stream_url = stream_url.split('?')[0]
+            start_time = str(int(time.time()) - int(TIMEZONE) - TIMEOFFSET) + '000000'
+            #print (stream_url)
+            stream_url = stream_url.split('?')[0] + '?stream_req_time=' + start_time
+            #print ("time.time() {}".format(time.time()))
+            #print ("########## timeoffset {}".format(start_time))
+            #print (stream_url)
+
+        if replay:
+            #Attention pas de decalage TIMEZONE
+            start_time = str(int(start.strftime('%s')) - TIMEOFFSET) + '000000'
+            stream_url = stream_url.split('?')[0] + '?stream_req_time=' + start_time
 
         return stream_url, hb
 
@@ -436,3 +455,25 @@ class Lebera(object):
             items.append(d.strftime('%Y-%m-%d'))
 
         return items
+
+    def epg(self, channel_id, start, end):
+        headers = {
+            'Origin': 'http://play.lebara.com',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'fr-FR,fr;q=0.8,en-US;q=0.6,en;q=0.4',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json',
+            'Referer': 'http://play.lebara.com/fr/en/Tamil/',
+            'Connection': 'keep-alive',
+        }
+
+        url = 'http://api.lebaraplay.com/api/v1/epg/events?client_id=spbtv-web&client_version=0.1.0&locale=en_GB&timezone=7' \
+              '200&limit=100&channels[]={}&from_date={}&to_date={}'.format(
+            channel_id, start, end
+        )
+
+        print ('selected date {}'.format(url))
+        r = requests.get(url, headers=headers)
+
+        return r.json()['events']

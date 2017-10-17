@@ -80,15 +80,23 @@ def section_view(site_name):
 
 @plugin.route('/epg/<date>/<channel_id>')
 def epg_view(date, channel_id):
-    date += 'T00:00:00.000Z'
-    start = datetime.strptime(date, '%Y-%m-%dT00:00:00.000Z')
-    end = datetime.strptime(date, '%Y-%m-%dT23:30:00.000Z')
-    url = 'http://api.lebaraplay.com/api/v1/epg/events?client_id=spbtv-web&client_version=0.1.0&locale=en_GB&timezone=7' \
-          '200&channels[]={}&from_date={}&to_date={}'.format(
-        channel_id,start, end
-    )
+    start = str(date) + 'T00:00:00.000Z'
+    end = str(date) + 'T23:30:00.000Z'
+    site_api = lebera.Lebera(plugin)
+    events = site_api.epg(channel_id, start, end)
 
-    print ('selected date {}'.format(url))
+    plugin.set_content('episodes')
+
+    #print ("############# events {}".format(events))
+
+    items = [{
+                'label': event['title'],
+                'icon' : event['images'][0]['original_url'],
+                'path': plugin.url_for('lebera_play', channel_name='chname', channel_id=event['channel_id'], start=event['start_date']),
+             } for event in events]
+
+
+    return items
 
 
 @plugin.route('/week/<channel_id>/<channel_name>')
@@ -110,7 +118,7 @@ def channels_view(refer):
     if refer == 'livetv':
         items = [{
                  'label': channel['name'],
-                 'path': plugin.url_for('lebera_play', channel_name=channel['name'], channel_id=channel['channel_id']),
+                 'path': plugin.url_for('lebera_play', channel_name=channel['name'], channel_id=channel['channel_id'], start='None'),
              } for channel in site_api.get_channels()]
 
     elif refer == 'replay':
@@ -123,21 +131,33 @@ def channels_view(refer):
 
     return items
 
-@plugin.route('/lebera_play/<channel_name>/<channel_id>')
-def lebera_play(channel_name, channel_id):
+@plugin.route('/lebera_play/<channel_name>/<channel_id>/<start>')
+def lebera_play(channel_name, channel_id, start):
     site_api = lebera.Lebera(plugin)
-    stream_url, heartbeat = site_api.get_stream(channel_id, live=True)
+    stime = None
 
-    print ('OK stream url got : {}'.format(stream_url))
+    print ("############# replay start {}".format(start))
+
+    if start != 'None':
+        try:
+            stime = datetime.strptime(start, '%Y-%m-%dT%H:%M:%SZ')
+        except TypeError:
+            stime = datetime(*(timee.strptime(start, '%Y-%m-%dT%H:%M:%SZ')[0:6]))
+
+
+
+    stream_url, heartbeat = site_api.get_stream(channel_id, stime)
+
+    #print ('OK stream url got : {}'.format(stream_url))
 
     item = {
         'label': channel_name,
         'path': stream_url,
     }
 
-    print ('######## Start to play')
+    #print ('######## Start to play')
     plugin.play_video(item)
-    print ('######## OK to player start heartbeat')
+    #print ('######## OK to player start heartbeat')
     site_api.start_heartbeat(heartbeat)
 
 
