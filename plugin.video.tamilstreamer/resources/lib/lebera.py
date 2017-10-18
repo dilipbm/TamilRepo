@@ -402,7 +402,11 @@ class Lebera(object):
 
         if replay:
             #Attention pas de decalage TIMEZONE
-            start_time = str(int(start.strftime('%s')) - TIMEOFFSET) + '000000'
+            print ('#################')
+            #print (start)
+            #print (type(start))
+            #print (int(start.strftime('%s')))
+            start_time = str(int(time.mktime(start.timetuple())) - TIMEOFFSET) + '000000'
             stream_url = stream_url.split('?')[0] + '?stream_req_time=' + start_time
 
         return stream_url, hb
@@ -468,12 +472,49 @@ class Lebera(object):
             'Connection': 'keep-alive',
         }
 
-        url = 'http://api.lebaraplay.com/api/v1/epg/events?client_id=spbtv-web&client_version=0.1.0&locale=en_GB&timezone=7' \
-              '200&limit=100&channels[]={}&from_date={}&to_date={}'.format(
+        url = 'http://api.lebaraplay.com/api/v1/epg/events?client_id=spbtv-web&client_version=0.1.0&locale=en_GB&timezone=7200' \
+              '&limit=100&channels[]={}&from_date={}&to_date={}'.format(
             channel_id, start, end
         )
 
         print ('selected date {}'.format(url))
         r = requests.get(url, headers=headers)
 
-        return r.json()['events']
+        items = []
+        for event in r.json()['events']:
+            title = event['title']
+            image_url = event['images'][0]['original_url']
+            now = int(time.time()) + int(TIMEZONE) #get now localtime
+            try:
+                st = datetime.strptime(event['start_date'], '%Y-%m-%dT%H:%M:%SZ')
+                sepoch = time.mktime(st.timetuple()) + int(TIMEZONE) #bc converted to gmt donc add TIMEZONE
+            except TypeError:
+                st = datetime(*(time.strptime(event['start_date'], '%Y-%m-%dT%H:%M:%SZ')[0:6]))
+                sepoch = time.mktime(st.timetuple()) + int(TIMEZONE) #bc converted to gmt donc add TIMEZONE
+
+            print (sepoch)
+
+            start_label = str(timedelta(seconds=int(sepoch) + int(TIMEZONE))).split(',')[1].replace(' ','')
+
+            print ('time start prog {}'.format(sepoch))
+
+            if sepoch + int(TIMEZONE) < now:
+                d = {
+                        'label' : start_label + ' | ' + title + ' | ' + '[COLOR FF00C936]Replay[/COLOR]',
+                        'image_url' : image_url,
+                        'channel_id' : event['channel_id'],
+                        'start_date' : event['start_date']
+                }
+            else:
+                d = {
+                    'label': start_label + ' | ' + title,
+                    'image_url': image_url,
+                    'channel_id': event['channel_id'],
+                    'start_date': 'None'
+                }
+
+            items.append(d)
+
+        return items
+
+        #return r.json()['events']

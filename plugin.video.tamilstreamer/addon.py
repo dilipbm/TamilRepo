@@ -26,7 +26,8 @@ def index():
 
         {'label' : 'Lebera',
          'path' : plugin.url_for('section_view', site_name='lebera'),
-        }
+        },
+
     ]
     return items
 
@@ -85,16 +86,14 @@ def epg_view(date, channel_id):
     site_api = lebera.Lebera(plugin)
     events = site_api.epg(channel_id, start, end)
 
-    plugin.set_content('episodes')
-
-    #print ("############# events {}".format(events))
+    plugin.set_content('tvshows')
 
     items = [{
-                'label': event['title'],
-                'icon' : event['images'][0]['original_url'],
-                'path': plugin.url_for('lebera_play', channel_name='chname', channel_id=event['channel_id'], start=event['start_date']),
+                 'label': event['label'],
+                 'icon': event['image_url'],
+                 'path': plugin.url_for('lebera_play', channel_name='chname', channel_id=event['channel_id'],
+                                   start=event['start_date']),
              } for event in events]
-
 
     return items
 
@@ -144,21 +143,18 @@ def lebera_play(channel_name, channel_id, start):
         except TypeError:
             stime = datetime(*(timee.strptime(start, '%Y-%m-%dT%H:%M:%SZ')[0:6]))
 
+        stream_url, heartbeat = site_api.get_stream(channel_id, stime)
 
+        item = {
+            'label': channel_name,
+            'path': stream_url,
+        }
 
-    stream_url, heartbeat = site_api.get_stream(channel_id, stime)
+        plugin.play_video(item)
+        site_api.start_heartbeat(heartbeat)
 
-    #print ('OK stream url got : {}'.format(stream_url))
-
-    item = {
-        'label': channel_name,
-        'path': stream_url,
-    }
-
-    #print ('######## Start to play')
-    plugin.play_video(item)
-    #print ('######## OK to player start heartbeat')
-    site_api.start_heartbeat(heartbeat)
+    else:
+        plugin.notify(msg='You cannot play this video', title='Error replay')
 
 
     #return [{
