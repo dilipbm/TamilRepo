@@ -113,11 +113,14 @@ def week_view(channel_id, channel_name):
 @plugin.route('/channels/<refer>')
 def channels_view(refer):
     site_api = lebera.Lebera(plugin)
+    #stime = site_api.live_startime()
+
+    #print ('Starttime {}'.format(stime))
 
     if refer == 'livetv':
         items = [{
                  'label': channel['name'],
-                 'path': plugin.url_for('lebera_play', channel_name=channel['name'], channel_id=channel['channel_id'], start='None'),
+                 'path': plugin.url_for('lebera_play', channel_name=channel['name'], channel_id=channel['channel_id'], start='live'),
              } for channel in site_api.get_channels()]
 
     elif refer == 'replay':
@@ -138,12 +141,18 @@ def lebera_play(channel_name, channel_id, start):
     print ("############# replay start {}".format(start))
 
     if start != 'None':
-        try:
-            stime = datetime.strptime(start, '%Y-%m-%dT%H:%M:%SZ')
-        except TypeError:
-            stime = datetime(*(timee.strptime(start, '%Y-%m-%dT%H:%M:%SZ')[0:6]))
 
-        stream_url, heartbeat = site_api.get_stream(channel_id, stime)
+        if start == 'live':
+            stream_url, heartbeat = site_api.get_stream(channel_id, stime)
+
+        else:
+
+            try:
+                stime = datetime.strptime(start, '%Y-%m-%dT%H:%M:%SZ')
+            except TypeError:
+                stime = datetime(*(timee.strptime(start, '%Y-%m-%dT%H:%M:%SZ')[0:6]))
+
+            stream_url, heartbeat = site_api.get_stream(channel_id, stime)
 
         item = {
             'label': channel_name,

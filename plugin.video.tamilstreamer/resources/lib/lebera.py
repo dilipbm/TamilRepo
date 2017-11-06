@@ -335,8 +335,11 @@ class Lebera(object):
         replay = False
 
         if start == None:
+            print ('Get live stream')
             live = True
+
         else:
+            print ('Get replay stream')
             replay = True
 
         if not self.device_registered:
@@ -459,6 +462,12 @@ class Lebera(object):
             items.append(d.strftime('%Y-%m-%d'))
 
         return items
+
+    def live_startime(self):
+        startime = None
+        now = int(time.time()) + int(TIMEZONE)
+        startime = now
+        return startime
 
     def epg(self, channel_id, start, end):
         headers = {
