@@ -13,3 +13,6 @@ v1.0.5
 v1.1.0
  - Add search module
 
+v1.2.0
+ - Add Lebera play
+ - Add Tamilrasigan
