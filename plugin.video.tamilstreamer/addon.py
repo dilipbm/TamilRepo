@@ -223,6 +223,9 @@ def stream_list_view(site_name, movie_name, movie_url):
     else:
         if site_name == 'tamilyogi':
             site_api = tamilyogi.TamilYogi(plugin)
+
+        if site_name == 'tamilrasigan':
+            site_api = tamilrasigan.TamilRasigan(plugin)
         stream_urls = site_api.get_stream_urls(movie_name, movie_url)
         items = [{'label': stream_url['name'] + ' | ' + stream_url['quality'],
                   'label2': stream_url['quality'],

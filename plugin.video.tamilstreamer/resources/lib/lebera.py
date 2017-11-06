@@ -100,8 +100,8 @@ class Lebera(object):
                 'Connection': 'keep-alive',
             }
         url = 'http://api.lebaraplay.com/api/oauth/token'
-        username = 'dilip@hotmail.fr' #self.plugin.get_setting('username', unicode)
-        password = '19871013af' #self.plugin.get_setting('password', unicode)
+        username = self.plugin.get_setting('username', unicode)
+        password = self.plugin.get_setting('password', unicode)
 
         if username == '' or password == '':
             print ('Please enter username and password in addons settings')

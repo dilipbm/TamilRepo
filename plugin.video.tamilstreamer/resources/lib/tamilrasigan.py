@@ -91,45 +91,34 @@ class TamilRasigan(object):
         :param url:
         :return:
         """
-        stream_urls = None
+        stream_urls = []
         soup = helper.get_soup_from_url(url)
+
         l = soup.find_all('iframe')
         for iframe in l:
-            print 'in get_Stream_url'
 
+            print 'in get_Stream_url'
 
             src = iframe.get('src')
             link = urllib2.urlparse.urlsplit(src)
             host = link.hostname
             host = host.replace('www.', '')
             host = host.replace('.com', '')
-            host = host.replace('.tv', '')
-            host = host.replace('.net', '')
-            host = host.replace('.cc', '')
-            host = host.replace('.sx', '')
-            host = host.replace('.to', '')
 
             print 'hostname is ---> ' + host
 
-            if host.lower() == 'vidmad':
-                stream_urls = stream_resolver.load_vidmad_video(src)
-
-            elif host.lower() == 'fastplay':
-                stream_urls = stream_resolver.load_fastplay_video(src)
+            if host.lower() == 'videohost2':
+                stream_url = stream_resolver.load_videohost2_video(src)
+                print ('Got stream url for videohost2 : {}'.format(stream_url))
+                stream_urls.append(stream_url)
 
             else:
                 print 'Host ingored!!'
 
 
-                # stream_urls = [{
-                #     'name': movie_name,
-                #     'quality': 'HD',
-                #     'url': steam_url
-                # }]
-
         return [{'name': movie_name,
-                 'quality': stream_url['quality'],
-                 'quality_icon': stream_url['quality_icon'],
-                 'url': stream_url['url']} for stream_url in stream_urls if stream_url['url']]
+                 'quality': '',
+                 'quality_icon': '',
+                 'url': stream_url} for stream_url in stream_urls]
 
 
