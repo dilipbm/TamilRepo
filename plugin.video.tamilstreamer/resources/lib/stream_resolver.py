@@ -11,12 +11,6 @@ icon_360 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_3
 icon_240 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_240.png'.format(addon_id))
 
 
-def load_videohost2_video(url):
-    soup = helper.get_soup_from_url(url)
-    script = soup.find_all('script', type="text/javascript")
-
-
-
 # To load Vidmad Video stream url
 def load_vidmad_video(url):
     soup = helper.get_soup_from_url(url)
@@ -90,10 +84,10 @@ def load_vidmad_video(url):
 #     return items
 
 
-def load_fastplay_video(url):
+def load_fastplay_video(url_page):
 
-    print (url)
-    soup = helper.get_soup_from_url(url)
+    print (url_page)
+    soup = helper.get_soup_from_url(url_page)
 
     #Getting host
     img_src = soup.find('img')['src']
@@ -104,32 +98,35 @@ def load_fastplay_video(url):
     try :
         matches = re.findall('720p\|(.*?)\|', str(soup))
         if len(matches) > 0:
-            url = 'http://' + host + '/' + matches[0] + '/' + 'v.mp4'
+            url = 'http://{0}/{1}/v.mp4|Referer={2}'.format(host,matches[0],url_page)
+            #url = 'http://' + host + '/' + matches[0] + '/' + 'v.mp4' + '|' + 'Referer=http://fastplay.to/
             d = {'url': url, 'quality': '720p', 'quality_icon': icon_720}
             items.append(d)
 
         matches = re.findall('360p\|(.*?)\|', str(soup))
         if len(matches) > 0:
-            url = 'http://' + host + '/' + matches[0] + '/' + 'v.mp4'
+            url = 'http://{0}/{1}/v.mp4|Referer={2}'.format(host,matches[0],url_page)
+            #url = 'http://' + host + '/' + matches[0] + '/' + 'v.mp4'
             d = {'url': url, 'quality': '360p', 'quality_icon': icon_360}
             items.append(d)
 
         matches = re.findall('mp4\|(.*?)\|', str(soup))
         if len(matches) > 0:
-            url = 'http://' + host + '/' + matches[0] + '/' + 'v.mp4'
+            url = 'http://{0}/{1}/v.mp4|Referer={2}'.format(host,matches[0],url_page)
+            #url = 'http://' + host + '/' + matches[0] + '/' + 'v.mp4'
             d = {'url': url, 'quality': '240p', 'quality_icon': icon_240}
             items.append(d)
     except:
         print ('Unaible to get video ligne from fastplay.to')
 
-    #print items
+   #print items
     return items
 
 
 def load_videohost2_video(url):
     #url = 'http://videohost2.com/playd.php?id=cj8xavpa64mvw0vsdrr5m2s6c'
-
-    print ('Url of video page {}'.format(url))
+    #print (url)
+    print ('Url of video page {0}'.format(url))
     stream_url_path = None
     ext = None
     stream_url = ''
@@ -181,6 +178,5 @@ def load_videohost2_video(url):
                 #items.append(d)
             else:
                 print ('Imposible to make stream_url for videohost2')
-
 
     return stream_url

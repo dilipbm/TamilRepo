@@ -109,7 +109,7 @@ class TamilRasigan(object):
 
             if host.lower() == 'videohost2':
                 stream_url = stream_resolver.load_videohost2_video(src)
-                print ('Got stream url for videohost2 : {}'.format(stream_url))
+                print ('Got stream url for videohost2 : {0}'.format(stream_url))
                 stream_urls.append(stream_url)
 
             else:

@@ -115,7 +115,7 @@ def channels_view(refer):
     site_api = lebera.Lebera(plugin)
     #stime = site_api.live_startime()
 
-    #print ('Starttime {}'.format(stime))
+    #print ('Starttime {0}'.format(stime))
 
     if refer == 'livetv':
         items = [{
@@ -138,7 +138,7 @@ def lebera_play(channel_name, channel_id, start):
     site_api = lebera.Lebera(plugin)
     stime = None
 
-    print ("############# replay start {}".format(start))
+    print ("############# replay start {0}".format(start))
 
     if start != 'None':
 

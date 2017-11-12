@@ -41,7 +41,7 @@ class Lebera(object):
     def _get_deviceinfo(self):
 
         if 'device_id' in self.storage_deviceinfo.keys():
-            print ('Device ID : {}'.format(self.storage_deviceinfo['device_id']))
+            print ('Device ID : {0}'.format(self.storage_deviceinfo['device_id']))
             device_id = self.storage_deviceinfo['device_id']
             try:
                 device_registered = self.storage_deviceinfo['registered']
@@ -51,7 +51,7 @@ class Lebera(object):
 
         else:
             device_id = uuid.uuid4()
-            print('Device ID not found. Creating new device ID : {}'.format(device_id))
+            print('Device ID not found. Creating new device ID : {0}'.format(device_id))
             self.storage_deviceinfo['device_id'] = str(device_id)
             self.storage_deviceinfo['registered'] = False
             device_registered = False
@@ -123,7 +123,7 @@ class Lebera(object):
             self.plugin.notify('Lebera login failure!!')
 
         access_token = r.json()['access_token']
-        print ('access token {}'.format(access_token))
+        print ('access token {0}'.format(access_token))
 
         if access_token:
             self.storage['access_token'] = access_token
@@ -143,7 +143,7 @@ class Lebera(object):
             'Connection': 'keep-alive',
         }
         url = 'http://api.lebaraplay.com/api/oauth/token'
-        print ('access token to logout {}'.format(access_token))
+        print ('access token to logout {0}'.format(access_token))
         data = [
             ('client_id', CLIENT_ID),
             ('client_version', CLIENT_VERSION),
@@ -217,7 +217,7 @@ class Lebera(object):
                 ('name', 'nix-chrome'),
                 ('access_token', self.access_token),
             ]
-        print ('Registering device {}'.format(self.device_id))
+        print ('Registering device {0}'.format(self.device_id))
         url = 'http://api.lebaraplay.com/api/v1/user/devices'
         r = requests.post(url, headers=headers, data=data)
         if r.status_code == 201:
@@ -294,7 +294,7 @@ class Lebera(object):
         if self.device_id == None:
             print ('Error device ID')
 
-        url = 'http://api.lebaraplay.com/api/v1/channels/{}/stream_types'.format(channel_id)
+        url = 'http://api.lebaraplay.com/api/v1/channels/{0}/stream_types'.format(channel_id)
         params = (
             ('client_id', CLIENT_ID),
             ('client_version', CLIENT_VERSION),
@@ -305,7 +305,7 @@ class Lebera(object):
 
         r = requests.get(url, headers=headers, params=params)
         if r.status_code != 200:
-            print ('Can not get stream type for channel {}'.format(channel_id))
+            print ('Can not get stream type for channel {0}'.format(channel_id))
 
         return r.json()['stream_types'][0]
 
@@ -322,7 +322,7 @@ class Lebera(object):
         i = 0
         while (xbmc.Player().isPlayingVideo() or i < 2):
         #while (i < 1):
-            #print ('##### valeur i {}'.format(i))
+            #print ('##### valeur i {0}'.format(i))
             print (url)
             requests.get(url)
             time.sleep(interval)
@@ -366,7 +366,7 @@ class Lebera(object):
         if stream_type == None:
             print ('Error get stream type')
 
-        url = 'http://api.lebaraplay.com/api/v1/channels/{}/stream'.format(channel_id)
+        url = 'http://api.lebaraplay.com/api/v1/channels/{0}/stream'.format(channel_id)
 
         params = (
             ('client_id', CLIENT_ID),
@@ -399,8 +399,8 @@ class Lebera(object):
             start_time = str(int(time.time()) - int(TIMEZONE) - TIMEOFFSET) + '000000'
             #print (stream_url)
             stream_url = stream_url.split('?')[0] + '?stream_req_time=' + start_time
-            #print ("time.time() {}".format(time.time()))
-            #print ("########## timeoffset {}".format(start_time))
+            #print ("time.time() {0}".format(time.time()))
+            #print ("########## timeoffset {0}".format(start_time))
             #print (stream_url)
 
         if replay:
@@ -482,11 +482,11 @@ class Lebera(object):
         }
 
         url = 'http://api.lebaraplay.com/api/v1/epg/events?client_id=spbtv-web&client_version=0.1.0&locale=en_GB&timezone=7200' \
-              '&limit=100&channels[]={}&from_date={}&to_date={}'.format(
+              '&limit=100&channels[]={0}&from_date={1}&to_date={2}'.format(
             channel_id, start, end
         )
 
-        print ('selected date {}'.format(url))
+        print ('selected date {0}'.format(url))
         r = requests.get(url, headers=headers)
 
         items = []
@@ -505,7 +505,7 @@ class Lebera(object):
 
             start_label = str(timedelta(seconds=int(sepoch) + int(TIMEZONE))).split(',')[1].replace(' ','')
 
-            print ('time start prog {}'.format(sepoch))
+            print ('time start prog {0}'.format(sepoch))
 
             if sepoch + int(TIMEZONE) < now:
                 d = {
