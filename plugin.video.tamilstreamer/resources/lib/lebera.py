@@ -390,6 +390,11 @@ class Lebera(object):
         if r.status_code != 200:
             print ('Error requete')
 
+            if r.json()['meta']['error_type'] == 'device_not_linked':
+                print ('Error device not found')
+                self._register_device()
+
+
         # print (r.json()['stream']['url'])
         hb = r.json()['stream']['heartbeat']
 
