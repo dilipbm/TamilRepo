@@ -20,5 +20,8 @@ v1.2.0
 v1.2.1
  - Correction lebera live
 
- v1.2.2
+v1.2.2
  - Bugfixe Kodiv16
+
+v1.2.3
+ - Bugfixe provider

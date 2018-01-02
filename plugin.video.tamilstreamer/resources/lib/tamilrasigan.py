@@ -1,4 +1,5 @@
 import helper
+from omdb import Omdb
 import urllib2
 import stream_resolver
 from xbmcswift2 import xbmc
@@ -57,6 +58,8 @@ class TamilRasigan(object):
         next_page = {}
         infos = {}
 
+        omdb = Omdb('eaf23cbd')
+
         if url == 'http://tamilrasigan.net/?s=':
             s = self.plugin.keyboard("", "Search for movie name")
             url += str(s)
@@ -70,8 +73,12 @@ class TamilRasigan(object):
                 url = m.get('href')
 
                 if title is not None:
+                    #t = helper.movie_name_resolver(title)
+                    #print ('Searchin in OMDB {}'.format(t))
+                    #r = omdb.get_movie_info(title=t)
+                    #print (r)
                     try:
-                        d = dict(name=helper.movie_name_resolver(title), image='', url=url, infos={})
+                        d = dict(name=helper.movie_name_resolver(title), image='', url=url, infos=infos)
                         movies.append(d)
                     except:
                         pass
