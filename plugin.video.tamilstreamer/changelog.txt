@@ -25,3 +25,6 @@ v1.2.2
 
 v1.2.3
  - Bugfixe provider
+
+v1.2.4
+ - Bugfixe lebera
