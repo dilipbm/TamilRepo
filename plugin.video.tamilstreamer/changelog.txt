@@ -28,3 +28,6 @@ v1.2.3
 
 v1.2.4
  - Bugfixe lebera
+
+v1.2.5
+ - Bugfixe fastplay (tamilyogi)
