@@ -46,6 +46,7 @@ icon_240 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_2
 #
 #    return items
 
+
 # To load Vidmad Video stream url
 def load_vidmad_video(url):
     jwp = helper.JWplayer(url)

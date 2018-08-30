@@ -1,5 +1,5 @@
 from xbmcswift2 import Plugin, ListItem, xbmc, xbmcgui
-from resources.lib import tamilyogi, tamilrasigan, lebera
+from resources.lib import tamilyogi, tamilrasigan, lebera, tamilgun
 import pprint
 from datetime import datetime, timedelta
 import ast
@@ -24,9 +24,14 @@ def index():
         {'label': 'Tamil Rasigan',
          'path': plugin.url_for('section_view', site_name='tamilrasigan')},
 
-        {'label' : 'Lebera',
-         'path' : plugin.url_for('section_view', site_name='lebera'),
-        },
+        {
+            'label': 'Tamilgun',
+            'path': plugin.url_for('section_view', site_name='tamilgun')
+        }
+
+        #{'label' : 'Lebera',
+        # 'path' : plugin.url_for('section_view', site_name='lebera'),
+        #},
 
     ]
     return items
@@ -71,10 +76,13 @@ def section_view(site_name):
             elif section['slug'] == 'replay':
                 d = {'label': section['name'], 'path': plugin.url_for('channels_view', refer=section['slug'])}
                 items.append(d)
-
-        #if section['name'] == 'Movies':
-        #    d = {'label': section['name'], 'path': plugin.url_for('movies_view', site_name=site_name)}
-        #    items.append(d)
+    
+    if site_name == 'tamilgun':
+        site_api = tamilgun.Tamilgun(plugin)
+        items = [{
+                     'label': section['name'],
+                     'path': plugin.url_for('movies_view', site_name=site_name, section_url=section['url']),
+                 } for section in site_api.get_sections()]
 
     return items
 
@@ -189,6 +197,9 @@ def movies_view(site_name, section_url):
     if site_name == 'tamilrasigan':
         site_api = tamilrasigan.TamilRasigan(plugin)
 
+    if site_name == 'tamilgun':
+        site_api = tamilgun.Tamilgun(plugin)
+
     movies = site_api.get_movies(section_url)
     # plugin.set_view_mode(500)
     plugin.set_content('musicvideos')
@@ -231,6 +242,10 @@ def stream_list_view(site_name, movie_name, movie_url):
 
         if site_name == 'tamilrasigan':
             site_api = tamilrasigan.TamilRasigan(plugin)
+
+        if site_name == 'tamilgun':
+            site_api = tamilgun.Tamilgun(plugin)
+
         stream_urls = site_api.get_stream_urls(movie_name, movie_url)
         items = [{'label': stream_url['name'] + ' | ' + stream_url['quality'],
                   'label2': stream_url['quality'],
