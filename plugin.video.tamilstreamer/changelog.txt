@@ -34,3 +34,6 @@ v1.2.5
 
 v1.3.5
  - Add new provider (tamilgun)
+
+ v1.3.6
+ - Add new stream provider (vidorg)
