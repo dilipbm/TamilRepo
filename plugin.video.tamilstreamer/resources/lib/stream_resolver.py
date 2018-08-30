@@ -47,6 +47,23 @@ icon_240 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_2
 #    return items
 
 
+
+# Load Vidorg
+def load_vidorg_videos(url):
+    soup = helper.get_soup_from_url(url)
+    links = re.findall(r'file:"(http:.*?)"', soup.text)
+    qualities = re.findall(r'label:"(\d*p)"', soup.text)
+    items = []
+    for l, q in zip(links, qualities):
+        d = {   
+                'url': l, 
+                'quality': q, 
+                'quality_icon': eval('icon_' + q.replace('p',''))
+            }
+        items.append(d)
+
+    return items
+
 # To load Vidmad Video stream url
 def load_vidmad_video(url):
     jwp = helper.JWplayer(url)

@@ -140,6 +140,9 @@ class TamilYogi(object):
             elif host.lower() == 'fastplay':
                 stream_urls = stream_resolver.load_fastplay_video(src)
 
+            elif host.lower() == 'vidorg':
+                stream_urls = stream_resolver.load_vidorg_videos(src)
+
             else:
                 print 'Host ingored!!'
 
