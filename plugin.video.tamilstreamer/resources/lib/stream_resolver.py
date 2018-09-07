@@ -8,6 +8,7 @@ import helper as helper
 addon_id = 'plugin.video.tamilstreamer'
 icon_720 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_720.png'.format(addon_id))
 icon_360 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_360.png'.format(addon_id))
+icon_480 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_360.png'.format(addon_id))
 icon_240 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_240.png'.format(addon_id))
 
 
@@ -46,6 +47,42 @@ icon_240 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_2
 #
 #    return items
 
+
+def load_dailymotion_video(url):
+    video_id = url.split('/')[-1]
+    return 'plugin://plugin.video.dailymotion_com/?url={}&mode=playVideo'.format(video_id)
+
+def load_youtube_video(url):
+    video_id = url.split('/')[-1].split('?')[0]
+    return 'plugin://plugin.video.youtube/?action=play_video&videoid=%s' %video_id
+
+
+def load_tamiltvtube_videos(url):
+    soup = helper.get_soup_from_url(url)
+    #print(soup.text)
+
+    if 'p,a,c,k,e,d' in soup.text:
+        jwp = helper.JWplayer(url)
+        sources = jwp.sources()
+
+        items = [
+                {'url': source[0] + '|Referer=' + url, 
+                'quality': source[1], 
+                'quality_icon': eval('icon_' + source[1].replace('p',''))} for source in sources]
+
+    else:
+        links = re.findall(r'file:"(http:.*?mp4)"', soup.text)
+        qualities = re.findall(r'label:"(\d*p)"', soup.text)
+        items = []
+        for l, q in zip(links, qualities):
+            d = {   
+                    'url': l, 
+                    'quality': q, 
+                    'quality_icon': eval('icon_' + q.replace('p',''))
+                }
+            items.append(d)
+
+    return items
 
 
 # Load Vidorg

@@ -96,8 +96,6 @@ class Tamilgun(object):
         if len(movies) == 0:
             self.plugin.notify(msg="404 No movies found", title='Not found')
 
-        print(movies)
-
         return [movie for movie in movies if movie['name'] and movie['url']]
 
 

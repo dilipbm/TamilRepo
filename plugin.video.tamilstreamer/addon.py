@@ -1,5 +1,5 @@
 from xbmcswift2 import Plugin, ListItem, xbmc, xbmcgui
-from resources.lib import tamilyogi, tamilrasigan, lebera, tamilgun
+from resources.lib import tamilyogi, tamilrasigan, lebera, tamilgun, thiraimix
 import pprint
 from datetime import datetime, timedelta
 import ast
@@ -27,6 +27,11 @@ def index():
         {
             'label': 'Tamilgun',
             'path': plugin.url_for('section_view', site_name='tamilgun')
+        },
+
+        {
+            'label': 'ThiraiMix',
+            'path': plugin.url_for('section_view', site_name='thiraimix')
         }
 
         #{'label' : 'Lebera',
@@ -83,6 +88,47 @@ def section_view(site_name):
                      'label': section['name'],
                      'path': plugin.url_for('movies_view', site_name=site_name, section_url=section['url']),
                  } for section in site_api.get_sections()]
+
+    if site_name == 'thiraimix':
+        site_api = thiraimix.Thiraimix(plugin)
+        items = [{
+                     'label': section['name'],
+                     'path': plugin.url_for('programmes_view', site_name=site_name, url=section['url']),
+                 } for section in site_api.get_sections()]
+
+    return items
+
+
+@plugin.route('/programmes/<site_name>/<url>')
+def programmes_view(site_name, url):
+    plugin.set_content('tvshows')
+
+    if site_name == 'thiraimix':
+        site_api = thiraimix.Thiraimix(plugin)
+        programmes = site_api.get_programmes(url)
+
+    items = [{
+                 'label': programme['name'],
+                 'thumbnail': programme['image'],
+                 'path': plugin.url_for('episode_view', site_name=site_name, url=programme['url'])
+             } for programme in programmes]
+
+    return items
+
+
+
+@plugin.route('/episodes/<site_name>/<url>')
+def episode_view(site_name, url):
+    plugin.set_content('files')
+
+    if site_name == 'thiraimix':
+        site_api = thiraimix.Thiraimix(plugin)
+        episodes = site_api.get_episodes(url)
+
+    items = [{
+                 'label': episode['name'],
+                 'path': plugin.url_for('stream_list_view', site_name=site_name, movie_name=episode['prog_name'], movie_url=episode['url'])
+             } for episode in episodes]
 
     return items
 
@@ -246,13 +292,26 @@ def stream_list_view(site_name, movie_name, movie_url):
         if site_name == 'tamilgun':
             site_api = tamilgun.Tamilgun(plugin)
 
+        if site_name == 'thiraimix':
+            site_api = thiraimix.Thiraimix(plugin)
+
         stream_urls = site_api.get_stream_urls(movie_name, movie_url)
-        items = [{'label': stream_url['name'] + ' | ' + stream_url['quality'],
+
+        if len(stream_urls) == 0:
+            plugin.notify(msg=movie_name, title='Video is no longer available')
+
+        #elif len(stream_urls) == 1:
+        #    print ('One stream urls %s' %stream_urls[0]['url'])
+        #    plugin.set_resolved_url(stream_urls[0]['url'])
+
+        else:
+            items = [{'label': stream_url['name'] + ' | ' + stream_url['quality'],
                   'label2': stream_url['quality'],
                   'icon': stream_url['quality_icon'],
                   'path': plugin.url_for('play_lecture', movie_name=stream_url['name'], stream_url=stream_url['url']),
                   'is_playable': True} for stream_url in stream_urls]
-        return items
+
+            return items
 
 
 # @plugin.route('/lebera_lecture/<stream_url>/<heartbeat>/')
@@ -275,8 +334,7 @@ def play_lecture(movie_name, stream_url):
     :param stream_url:
     :return:
     """
-
-    plugin.log.info('Playing url: %s' % stream_url)
+    plugin.log.info('####### Playing url: %s' % stream_url)
     plugin.set_resolved_url(stream_url)
     #plugin.notify(msg=movie_name, title='Now Playing')
 
