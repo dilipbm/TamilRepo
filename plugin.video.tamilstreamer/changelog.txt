@@ -40,3 +40,6 @@ v1.3.6
 
 v1.4.1
  - Add new video provider (thiraimix)
+
+ v1.4.2
+ - Bug correction
