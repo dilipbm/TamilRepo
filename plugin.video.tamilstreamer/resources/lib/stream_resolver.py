@@ -71,7 +71,7 @@ def load_tamiltvtube_videos(url):
                 'quality_icon': eval('icon_' + source[1].replace('p',''))} for source in sources]
 
     else:
-        links = re.findall(r'file:"(http:.*?mp4)"', soup.text)
+        links = re.findall(r'file:"(http|https:.*?mp4)"', soup.text)
         qualities = re.findall(r'label:"(\d*p)"', soup.text)
         items = []
         for l, q in zip(links, qualities):
@@ -103,28 +103,57 @@ def load_vidorg_videos(url):
 
 # To load Vidmad Video stream url
 def load_vidmad_video(url):
-    jwp = helper.JWplayer(url)
-    sources = jwp.sources()
+    soup = helper.get_soup_from_url(url)
 
-    items = [
-            {'url': source[0] + '|Referer=' + url, 
-            'quality': source[1], 
-            'quality_icon': eval('icon_' + source[1].replace('p',''))} for source in sources]
+    if 'p,a,c,k,e,d' in soup.text:
+        jwp = helper.JWplayer(url)
+        sources = jwp.sources()
+
+        items = [
+                {'url': source[0] + '|Referer=' + url, 
+                'quality': source[1], 
+                'quality_icon': eval('icon_' + source[1].replace('p',''))} for source in sources]
+
+    else:
+        links = re.findall(r'file:"(http|https:.*?mp4)"', soup.text)
+        qualities = re.findall(r'label:"(\d*p)"', soup.text)
+        items = []
+        for l, q in zip(links, qualities):
+            d = {   
+                    'url': l + '|Referer=' + url_page, 
+                    'quality': q, 
+                    'quality_icon': eval('icon_' + q.replace('p',''))
+                }
+            items.append(d)
 
     return items
 
 
 def load_fastplay_video(url_page):
+    soup = helper.get_soup_from_url(url_page)
 
-    jwp = helper.JWplayer(url_page)
-    sources = jwp.sources()
+    if 'p,a,c,k,e,d' in soup.text:
+        jwp = helper.JWplayer(url_page)
+        sources = jwp.sources()
 
-    items = [
-            {'url': source[0] + '|Referer=' + url_page, 
-            'quality': source[1], 
-            'quality_icon': eval('icon_' + source[1].replace('p',''))} for source in sources]
+        items = [
+                {'url': source[0] + '|Referer=' + url_page, 
+                'quality': source[1], 
+                'quality_icon': eval('icon_' + source[1].replace('p',''))} for source in sources]
 
-    print (items)
+    
+    else:
+        links = re.findall(r'file:"(http|https:.*?mp4)"', soup.text)
+        qualities = re.findall(r'label:"(\d*p)"', soup.text)
+        items = []
+        for l, q in zip(links, qualities):
+            d = {   
+                    'url': l + '|Referer=' + url_page, 
+                    'quality': q, 
+                    'quality_icon': eval('icon_' + q.replace('p',''))
+                }
+            items.append(d)
+
     return items
 
 
