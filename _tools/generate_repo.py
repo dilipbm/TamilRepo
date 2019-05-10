@@ -12,7 +12,7 @@ import shutil
 from xml.dom import minidom
 import glob
 import datetime
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 
 
 class Generator:
@@ -28,7 +28,7 @@ class Generator:
         """
         Load the configuration
         """
-        self.config = SafeConfigParser()
+        self.config = ConfigParser()
         self.config.read('config.ini')
         
         self.tools_path=os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__))))
@@ -149,7 +149,7 @@ class Generator:
                     # skip encoding format line
                     if ( line.find( "<?xml" ) >= 0 ): continue
                     # add line
-                    addon_xml += unicode( line.rstrip() + "\n", "utf-8" )
+                    addon_xml += line.rstrip() + "\n"
                 # we succeeded so add to our final addons.xml text
                 addons_xml += addon_xml.rstrip() + "\n\n"
             except Exception as e:
@@ -161,11 +161,22 @@ class Generator:
         self._save_file( addons_xml.encode( "utf-8" ), file=self.output_path + "addons.xml" )
 
     def _generate_md5_file( self ):
+        block_size=2**20
         try:
+            m = hashlib.md5()
+            with open(self.output_path +  "addons.xml", 'rb') as fin:
+                while True:
+                    data = fin.read(block_size)
+                    if not data:
+                        break
+                        
+                    m.update(data)
+
             # create a new md5 hash
-            m = hashlib.md5.new( open(self.output_path +  "addons.xml" ).read() ).hexdigest()
+            #m = hashlib.md5( open(self.output_path +  "addons.xml", encoding='utf-8').read() ).hexdigest()
+
             # save file
-            self._save_file( m, file=self.output_path + "addons.xml.md5" )
+            self._save_file( str.encode(m.hexdigest()), file=self.output_path + "addons.xml.md5" )
         except Exception as e:
             # oops
             print ("An error occurred creating addons.xml.md5 file!\n%s" % ( e, ))
@@ -173,7 +184,7 @@ class Generator:
     def _save_file( self, data, file ):
         try:
             # write data to the file
-            open( file, "w" ).write( data )
+            open( file, "wb" ).write( data )
         except Exception as e:
             # oops
             print ("An error occurred saving %s file!\n%s" % ( file, e, ))

@@ -1,7 +1,6 @@
 Note to run app:
  - cd to plugins folder
  - source activate env_kodi
- - xbmcswift2 run interactive
 
 - Corrections in develop
 - push to develop (remot)
