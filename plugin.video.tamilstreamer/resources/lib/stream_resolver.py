@@ -1,7 +1,7 @@
 import re
-from xbmcswift2 import xbmc
 import urllib2
 import base64
+import xbmc
 
 import helper as helper
 

@@ -3,6 +3,13 @@ from bs4 import BeautifulSoup
 import re
 
 
+
+def encode_url(url):
+    return url.replace('/','____')
+
+def decode_url(url):
+    return url.replace('____','/')
+
 def get_soup_from_url(url):
     """
     :param url:
@@ -17,7 +24,7 @@ def get_soup_from_url(url):
         r = opener.open(req)
         html = r.read()
 
-    except urllib2.HTTPError, e:
+    except urllib2.HTTPError as e:
         html = e.fp.read()
 
     try:
@@ -83,7 +90,7 @@ class JWplayer(object):
             r = opener.open(req)
             html = r.read()
 
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             html = e.fp.read() 
             
         return html
@@ -132,3 +139,4 @@ class JWplayer(object):
 #url = 'http://fastplay.to/embed-vmbkhvs0n6vr.html'
 #jwp = JWplayer(url)
 #sources = jwp.sources()
+

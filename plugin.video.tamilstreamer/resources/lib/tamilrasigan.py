@@ -1,8 +1,7 @@
 import helper
-from omdb import Omdb
 import urllib2
 import stream_resolver
-from xbmcswift2 import xbmc
+import xbmc
 
 
 '''
@@ -58,8 +57,6 @@ class TamilRasigan(object):
         next_page = {}
         infos = {}
 
-        omdb = Omdb('eaf23cbd')
-
         if url == 'http://tamilrasigan.net/?s=':
             s = self.plugin.keyboard("", "Search for movie name")
             url += str(s)
@@ -103,16 +100,13 @@ class TamilRasigan(object):
 
         l = soup.find_all('iframe')
         for iframe in l:
-
-            print 'in get_Stream_url'
-
             src = iframe.get('src')
             link = urllib2.urlparse.urlsplit(src)
             host = link.hostname
             host = host.replace('www.', '')
             host = host.replace('.com', '')
 
-            print 'hostname is ---> ' + host
+            print ('hostname is ---> ' + host)
 
             if host.lower() == 'videohost2':
                 stream_url = stream_resolver.load_videohost2_video(src)
@@ -120,7 +114,7 @@ class TamilRasigan(object):
                 stream_urls.append(stream_url)
 
             else:
-                print 'Host ingored!!'
+                print ('Host ingored!!')
 
 
         return [{'name': movie_name,

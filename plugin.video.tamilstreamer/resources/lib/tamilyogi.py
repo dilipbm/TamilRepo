@@ -1,7 +1,7 @@
 import helper
 import urllib2
 import stream_resolver
-from xbmcswift2 import xbmc
+import xbmc
 
 '''
     Main API for tamilyogi site

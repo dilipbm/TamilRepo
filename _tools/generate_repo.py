@@ -6,13 +6,14 @@
 """ This file is "as is", without any warranty whatsoever. Use as own risk """
 
 import os
-import md5
+import hashlib
 import zipfile
 import shutil
 from xml.dom import minidom
 import glob
 import datetime
-from ConfigParser import SafeConfigParser
+from configparser import SafeConfigParser
+
 
 class Generator:
     
@@ -162,7 +163,7 @@ class Generator:
     def _generate_md5_file( self ):
         try:
             # create a new md5 hash
-            m = md5.new( open(self.output_path +  "addons.xml" ).read() ).hexdigest()
+            m = hashlib.md5.new( open(self.output_path +  "addons.xml" ).read() ).hexdigest()
             # save file
             self._save_file( m, file=self.output_path + "addons.xml.md5" )
         except Exception as e:
