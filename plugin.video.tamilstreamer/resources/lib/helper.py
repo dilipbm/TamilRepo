@@ -1,7 +1,10 @@
-import urllib, urllib2
 from bs4 import BeautifulSoup
 import re
 
+try:
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
 
 
 def encode_url(url):

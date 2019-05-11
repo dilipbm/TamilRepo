@@ -1,5 +1,9 @@
-import urllib2
 import xbmc
+
+try:
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
 
 from resources.lib import helper
 from resources.lib import stream_resolver
@@ -131,7 +135,7 @@ class TamilYogi(object):
             host = host.replace('.sx', '')
             host = host.replace('.to', '')
 
-            print 'hostname is ---> ' + host
+            print ('hostname is ---> ' + host)
 
             if host.lower() == 'vidmad':
                 stream_urls = stream_resolver.load_vidmad_video(src)
@@ -144,7 +148,7 @@ class TamilYogi(object):
                 stream_urls = stream_resolver.load_vidorg_videos(src)
 
             else:
-                print 'Host ingored!!'
+                print ('Host ingored!!')
 
 
                 # stream_urls = [{

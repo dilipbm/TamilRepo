@@ -1,5 +1,4 @@
 import re
-import urllib2
 import base64
 import xbmc
 

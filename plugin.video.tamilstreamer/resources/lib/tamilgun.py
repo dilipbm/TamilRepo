@@ -1,4 +1,3 @@
-import urllib2
 import xbmc
 import re
 

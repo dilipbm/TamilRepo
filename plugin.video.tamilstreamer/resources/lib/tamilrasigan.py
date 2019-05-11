@@ -1,5 +1,9 @@
-import urllib2
 import xbmc
+
+try:
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
 
 from resources.lib import helper
 from resources.lib import stream_resolver
