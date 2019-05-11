@@ -4,6 +4,7 @@ import ast
 import time as timee
 
 import routing
+import xbmcgui
 from xbmcgui import ListItem
 from xbmcplugin import addDirectoryItem, endOfDirectory, setResolvedUrl, setContent
 
@@ -25,7 +26,7 @@ def index():
     """
 
     addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="tamilyogi"), ListItem("Tamil Yogi"), True)
-    #addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="tamilgun"), ListItem("Tamilgun"), True)
+    addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="tamilgun"), ListItem("Tamilgun"), True)
     #addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="thiraimix"), ListItem("ThiraiMix"), True)
 
     endOfDirectory(plugin.handle)
@@ -70,6 +71,16 @@ def section_view(site_name):
 
     elif site_name == 'thiraimix':
         site_api = thiraimix.Thiraimix(plugin)
+        for section in site_api.get_sections():
+            addDirectoryItem(plugin.handle,
+            plugin.url_for(movies_view, site_name=site_name, section_url=hp.encode_url(section['url'])),
+            ListItem(section['name']),
+            True)
+
+        endOfDirectory(plugin.handle) 
+    
+    elif site_name == 'tamilgun':
+        site_api = tamilgun.Tamilgun(plugin)
         for section in site_api.get_sections():
             addDirectoryItem(plugin.handle,
             plugin.url_for(movies_view, site_name=site_name, section_url=hp.encode_url(section['url'])),
@@ -134,7 +145,6 @@ def movies_view(site_name, section_url):
     :return:
     """
 
-    print('>>>>>>>>>>>>>>>>>>>>>>> INSIDEEEEE {}'.format(section_url))
     section_url = hp.decode_url(section_url)
 
     if site_name == 'tamilyogi':
@@ -201,35 +211,24 @@ def stream_list_view(site_name, movie_name, movie_url):
         stream_urls = site_api.get_stream_urls(movie_name, movie_url)
 
         if len(stream_urls) == 0:
-            plugin.notify(msg=movie_name, title='Video is no longer available')
-
+            xbmcgui.Dialog().notification(heading='Error 404', message='Video is no longer available')
 
         else:
             for stream_url in stream_urls:
+                print('>>>>>>>>>>>>>>>> {}'.format(stream_url['url']))
                 listitem = ListItem(stream_url['name'] + ' | ' + stream_url['quality'])
+                listitem.setInfo(type='video', infoLabels={'Title': stream_url['name'] })
                 listitem.setIconImage(stream_url['quality_icon'])
                 listitem.setProperty('IsPlayable', 'true')
                 addDirectoryItem (
                     plugin.handle, 
-                    plugin.url_for(play_lecture, movie_name=stream_url['name'], stream_url=hp.encode_url(stream_url['url'])), 
+                    stream_url['url'],
                     listitem,
                     False
                 )
 
             endOfDirectory(plugin.handle) 
 
-
-@plugin.route('/lectures/<movie_name>/<stream_url>/')
-def play_lecture(movie_name, stream_url):
-    """
-    Stream movie
-    :param movie_name:
-    :param stream_url:
-    :return:
-    """
-
-    play_item = ListItem(path=hp.decode_url(stream_url))
-    setResolvedUrl(plugin.handle, True, listitem=play_item)
 
 
 if __name__ == '__main__':

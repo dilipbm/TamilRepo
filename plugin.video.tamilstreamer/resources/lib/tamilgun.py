@@ -1,5 +1,11 @@
 import xbmc
+import xbmcgui
 import re
+
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 from resources.lib import helper
 from resources.lib import stream_resolver
@@ -61,7 +67,6 @@ class Tamilgun(object):
         infos = {}
 
         soup = helper.get_soup_from_url(url)
-
         for article in soup.find_all('article'):
             try:
                 title = article.find('h3').find('a')['title']
@@ -79,7 +84,7 @@ class Tamilgun(object):
 
             try:
                 img = article.find('img')['src'].strip()
-                print (img)
+                
             except:
                 continue
 
@@ -95,7 +100,7 @@ class Tamilgun(object):
             movies.append(next_page)
 
         if len(movies) == 0:
-            self.plugin.notify(msg="404 No movies found", title='Not found')
+            xbmcgui.Dialog().notification(heading='Error 404', message='No movies found')
 
         return [movie for movie in movies if movie['name'] and movie['url']]
 
@@ -114,7 +119,8 @@ class Tamilgun(object):
         if len(hls_streams) > 0:
             for src in hls_streams:
                 url = re.sub('/(hls_\w*)/', '/hls/', src) + '/playlist.m3u8'
-                stream_urls.append(url)
+                p = urlparse(url, 'http')
+                stream_urls.append(p.geturl())
         
         else:
             return []
