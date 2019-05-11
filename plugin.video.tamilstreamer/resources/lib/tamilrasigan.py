@@ -1,7 +1,8 @@
-import helper
 import urllib2
-import stream_resolver
 import xbmc
+
+from resources.lib import helper
+from resources.lib import stream_resolver
 
 
 '''

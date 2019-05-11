@@ -1,7 +1,8 @@
-import helper
 import urllib2
-import stream_resolver
 import xbmc
+
+from resources.lib import helper
+from resources.lib import stream_resolver
 
 '''
     Main API for tamilyogi site
@@ -118,8 +119,6 @@ class TamilYogi(object):
         soup = helper.get_soup_from_url(url)
         l = soup.find_all('iframe')
         for iframe in l:
-            print 'in get_Stream_url'
-
 
             src = iframe.get('src')
             link = urllib2.urlparse.urlsplit(src)

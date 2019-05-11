@@ -3,7 +3,7 @@ import urllib2
 import base64
 import xbmc
 
-import helper as helper
+from resources.lib import helper
 
 addon_id = 'plugin.video.tamilstreamer'
 icon_720 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_720.png'.format(addon_id))

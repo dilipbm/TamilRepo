@@ -1,8 +1,10 @@
-import helper
 import urllib2
-import stream_resolver
 import xbmc
 import re
+
+from resources.lib import helper
+from resources.lib import stream_resolver
+
 
 '''
     Main API for tamilyogi site
