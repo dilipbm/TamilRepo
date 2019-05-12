@@ -3,3 +3,5 @@ v 1.4.6
  - code review
  - bug fix (tamilgun search)
  
+v 1.4.7
+ - bug fix
