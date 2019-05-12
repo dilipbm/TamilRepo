@@ -5,21 +5,14 @@ try:
 except ImportError:
     import urllib2
 
-from resources.lib import helper
 from resources.lib import stream_resolver
+from resources.lib import utils
+from resources.lib.utils import ADDON_ID, ICON_NEXT, ICON_240, ICON_360, ICON_720
 
 '''
     Main API for tamilyogi site
 '''
 
-addon_id = 'plugin.video.tamilstreamer'
-icon_next = xbmc.translatePath('special://home/addons/{0}/resources/images/next.png'.format(addon_id))
-
-
-#icon_next = 'https://raw.githubusercontent.com/dilipbm/TamilRepo/master/plugin.video.tamilstreamer/resources/images/next.png'
-#icon_720 = 'https://raw.githubusercontent.com/dilipbm/TamilRepo/master/plugin.video.tamilstreamer/resources/images/icon_720.png'
-#icon_360 = 'https://raw.githubusercontent.com/dilipbm/TamilRepo/master/plugin.video.tamilstreamer/resources/images/icon_360.png'
-#icon_240 = 'https://raw.githubusercontent.com/dilipbm/TamilRepo/master/plugin.video.tamilstreamer/resources/images/icon_240.png'
 
 class TamilYogi(object):
     def __init__(self, plugin):
@@ -54,7 +47,7 @@ class TamilYogi(object):
                     {'name': 'Tamil Dubbed Movies',
                      'url': 'http://tamilyogi.cc/category/tamilyogi-dubbed-movies-online/'},
                     {'name': 'Search',
-                     'url': 'http://tamilyogi.cc/?s='}
+                     'url': 'http://tamilyogi.cc/search'}
                     ]
 
         return [section for section in sections if section['name'] and section['url']]
@@ -71,11 +64,15 @@ class TamilYogi(object):
         next_page = {}
         infos = {}
 
-        if url == 'http://tamilyogi.cc/?s=':
-            s = self.plugin.keyboard("", "Search for movie name")
-            url += str(s)
+        if url == 'http://tamilyogi.cc/search':
+            kb = xbmc.Keyboard("", "Search for movie name")
+            kb.doModal()
+            if (kb.isConfirmed()):
+                url = 'http://tamilyogi.cc/?s={}'.format(kb.getText())
+            else:
+                return []
 
-        soup = helper.get_soup_from_url(url)
+        soup = utils.get_soup_from_url(url)
 
         for a in soup.find_all('a'):
             title = a.get('title')
@@ -84,7 +81,7 @@ class TamilYogi(object):
                 if 'next' in nextpagetag:
                     next_page_url = a.get('href')
                     next_page = {'name': 'Next Page',
-                                 'image': icon_next,
+                                 'image': ICON_NEXT,
                                  'infos':{},
                                  'url': next_page_url}
             except:
@@ -98,8 +95,8 @@ class TamilYogi(object):
             if (title is not None) and (title != 'Tamil Movie Online') and img != '':
                 try:
                     if title not in added_items:
-                        d = dict(name=helper.movie_name_resolver(title), image=img, url=a.get('href'),
-                                 infos={'title': helper.movie_name_resolver(title)})
+                        d = dict(name=utils.movie_name_resolver(title), image=img, url=a.get('href'),
+                                 infos={'title': utils.movie_name_resolver(title)})
                         movies.append(d)
                         added_items.append(title)
                 except:
@@ -107,8 +104,8 @@ class TamilYogi(object):
         if bool(next_page): #If next page
             movies.append(next_page)
 
-        if len(movies) == 0:
-            self.plugin.notify(msg="404 No movies found", title='Not found')
+        #if len(movies) == 0:
+        #    self.plugin.notify(msg="404 No movies found", title='Not found')
 
         return [movie for movie in movies if movie['name'] and movie['url']]
 
@@ -120,7 +117,7 @@ class TamilYogi(object):
         :return:
         """
         stream_urls = None
-        soup = helper.get_soup_from_url(url)
+        soup = utils.get_soup_from_url(url)
         l = soup.find_all('iframe')
         for iframe in l:
 

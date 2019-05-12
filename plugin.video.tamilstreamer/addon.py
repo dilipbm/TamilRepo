@@ -2,6 +2,7 @@ import pprint
 from datetime import datetime, timedelta
 import ast
 import time as timee
+import re
 
 import routing
 import xbmcgui
@@ -11,8 +12,9 @@ from xbmcplugin import addDirectoryItem, endOfDirectory, setResolvedUrl, setCont
 from resources.lib import tamilyogi
 from resources.lib import tamilrasigan
 from resources.lib import tamilgun
+from resources.lib import tamildbox
 from resources.lib import thiraimix
-from resources.lib import helper as hp
+from resources.lib import utils
 
 plugin = routing.Plugin()
 
@@ -27,6 +29,7 @@ def index():
 
     addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="tamilyogi"), ListItem("Tamil Yogi"), True)
     addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="tamilgun"), ListItem("Tamilgun"), True)
+    addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="tamildbox"), ListItem("Tamildbox"), True)
     #addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="thiraimix"), ListItem("ThiraiMix"), True)
 
     endOfDirectory(plugin.handle)
@@ -41,20 +44,18 @@ def section_view(site_name):
     :return:
     """
 
+    setContent(plugin.handle, 'files')
 
     if site_name == 'tamilyogi':
         site_api = tamilyogi.TamilYogi(plugin)
 
         
         for section in site_api.get_sections():
-        
             addDirectoryItem(
                 plugin.handle,
-                plugin.url_for(movies_view, site_name=site_name, section_url=hp.encode_url(section['url'])),
+                plugin.url_for(movies_view, site_name=site_name, section_url=utils.encode_url(section['url'])),
                 ListItem(section['name']), 
                 True)
-
-        endOfDirectory(plugin.handle) 
 
     elif site_name == 'tamilrasigan':
         site_api = tamilrasigan.TamilRasigan(plugin)
@@ -62,35 +63,35 @@ def section_view(site_name):
         for section in site_api.get_sections():
             addDirectoryItem(
                 plugin.handle,
-                plugin.url_for(movies_view, site_name=site_name, section_url=hp.encode_url(section['url'])),
+                plugin.url_for(movies_view, site_name=site_name, section_url=utils.encode_url(section['url'])),
                 ListItem(section['name']), 
                 True)
-
-        endOfDirectory(plugin.handle) 
-
 
     elif site_name == 'thiraimix':
         site_api = thiraimix.Thiraimix(plugin)
         for section in site_api.get_sections():
             addDirectoryItem(plugin.handle,
-            plugin.url_for(movies_view, site_name=site_name, section_url=hp.encode_url(section['url'])),
+            plugin.url_for(movies_view, site_name=site_name, section_url=utils.encode_url(section['url'])),
             ListItem(section['name']),
             True)
-
-        endOfDirectory(plugin.handle) 
     
     elif site_name == 'tamilgun':
         site_api = tamilgun.Tamilgun(plugin)
         for section in site_api.get_sections():
             addDirectoryItem(plugin.handle,
-            plugin.url_for(movies_view, site_name=site_name, section_url=hp.encode_url(section['url'])),
+            plugin.url_for(movies_view, site_name=site_name, section_url=utils.encode_url(section['url'])),
             ListItem(section['name']),
             True)
 
-        endOfDirectory(plugin.handle) 
+    elif site_name == 'tamildbox':
+        site_api = tamildbox.Tamildbox(plugin)
+        for section in site_api.get_sections():
+            addDirectoryItem(plugin.handle,
+            plugin.url_for(movies_view, site_name=site_name, section_url=utils.encode_url(section['url'])),
+            ListItem(section['name']),
+            True)
 
-    else:
-        endOfDirectory(plugin.handle) 
+    endOfDirectory(plugin.handle) 
 
 
 
@@ -107,7 +108,7 @@ def programmes_view(site_name, url):
         listitem.setThumbnailImage(programme['image'])
         addDirectoryItem (
             plugin.handle, 
-            plugin.url_for(episode_view, site_name=site_name, url=hp.encode_url(programme['url'])), 
+            plugin.url_for(episode_view, site_name=site_name, url=utils.encode_url(programme['url'])), 
             listitem,
             True
         )
@@ -127,7 +128,7 @@ def episode_view(site_name, url):
     for episode in episodes:
         addDirectoryItem (
             plugin.handle, 
-            plugin.url_for(stream_list_view, site_name=site_name, movie_name=episode['prog_name'], movie_url=hp.encode_url(episode['url'])), 
+            plugin.url_for(stream_list_view, site_name=site_name, movie_name=episode['prog_name'], movie_url=utils.encode_url(episode['url'])), 
             ListItem(episode['name']),
             True
         )
@@ -145,7 +146,9 @@ def movies_view(site_name, section_url):
     :return:
     """
 
-    section_url = hp.decode_url(section_url)
+    setContent(plugin.handle, 'movies')
+
+    section_url = utils.decode_url(section_url)
 
     if site_name == 'tamilyogi':
         site_api = tamilyogi.TamilYogi(plugin)
@@ -156,11 +159,18 @@ def movies_view(site_name, section_url):
     if site_name == 'tamilgun':
         site_api = tamilgun.Tamilgun(plugin)
 
+    if site_name == 'tamildbox':
+        site_api = tamildbox.Tamildbox(plugin)
+
     movies = site_api.get_movies(section_url)
 
+    if len(movies) == 0:
+        xbmcgui.Dialog().notification("Error 404", "No movies found")
+        setContent(plugin.handle, 'files')
+        plugin.redirect('/sections/{}'.format(site_name))
 
     for movie in movies:
-        listitem = ListItem(movie['name'])
+        listitem = ListItem(utils.color_movie_name(movie['name']))
         listitem.setThumbnailImage(movie['image'])
         listitem.setArt({
             'thumb': movie['image'],
@@ -169,12 +179,11 @@ def movies_view(site_name, section_url):
         listitem.setInfo('video', movie['infos'])
         addDirectoryItem (
             plugin.handle, 
-            plugin.url_for(stream_list_view, site_name=site_name, movie_name=movie['name'], movie_url=hp.encode_url(movie['url'])), 
+            plugin.url_for(stream_list_view, site_name=site_name, movie_name=movie['name'], movie_url=utils.encode_url(movie['url'])), 
             listitem,
             True
         )
 
-    setContent(plugin.handle, 'movies')
     endOfDirectory(plugin.handle)
 
 
@@ -189,11 +198,11 @@ def stream_list_view(site_name, movie_name, movie_url):
     :return:
     """
 
-    movie_url = hp.decode_url(movie_url)
+    movie_url = utils.decode_url(movie_url)
 
     # If hit Next page
     if movie_name == 'Next Page':
-        plugin.redirect('/movies/{}/{}'.format(site_name,hp.encode_url(movie_url)))
+        plugin.redirect('/movies/{}/{}'.format(site_name,utils.encode_url(movie_url)))
 
     else:
         if site_name == 'tamilyogi':
@@ -208,6 +217,9 @@ def stream_list_view(site_name, movie_name, movie_url):
         if site_name == 'thiraimix':
             site_api = thiraimix.Thiraimix(plugin)
 
+        if site_name == 'tamildbox':
+            site_api = tamildbox.Tamildbox(plugin)
+
         stream_urls = site_api.get_stream_urls(movie_name, movie_url)
 
         if len(stream_urls) == 0:
@@ -215,7 +227,6 @@ def stream_list_view(site_name, movie_name, movie_url):
 
         else:
             for stream_url in stream_urls:
-                print('>>>>>>>>>>>>>>>> {}'.format(stream_url['url']))
                 listitem = ListItem(stream_url['name'] + ' | ' + stream_url['quality'])
                 listitem.setInfo(type='video', infoLabels={'Title': stream_url['name'] })
                 listitem.setIconImage(stream_url['quality_icon'])

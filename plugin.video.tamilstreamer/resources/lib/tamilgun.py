@@ -1,5 +1,3 @@
-import xbmc
-import xbmcgui
 import re
 
 try:
@@ -7,19 +5,14 @@ try:
 except ImportError:
     from urlparse import urlparse
 
-from resources.lib import helper
 from resources.lib import stream_resolver
-
+from resources.lib import utils
+from resources.lib.utils import ADDON_ID, ICON_NEXT, ICON_240, ICON_360, ICON_720
 
 '''
     Main API for tamilyogi site
 '''
 
-addon_id = 'plugin.video.tamilstreamer'
-icon_next = xbmc.translatePath('special://home/addons/{0}/resources/images/next.png'.format(addon_id))
-icon_720 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_720.png'.format(addon_id))
-icon_360 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_360.png'.format(addon_id))
-icon_240 = xbmc.translatePath('special://home/addons/{0}/resources/images/icon_240.png'.format(addon_id))
 
 class Tamilgun(object):
     def __init__(self, plugin):
@@ -66,7 +59,7 @@ class Tamilgun(object):
         next_page = {}
         infos = {}
 
-        soup = helper.get_soup_from_url(url)
+        soup = utils.get_soup_from_url(url)
         for article in soup.find_all('article'):
             try:
                 title = article.find('h3').find('a')['title']
@@ -76,7 +69,7 @@ class Tamilgun(object):
             try:
                 next_page_url = soup.find('a', class_='next')['href']
                 next_page = {'name': 'Next Page',
-                             'image': icon_next,
+                             'image': ICON_NEXT,
                              'infos':{},
                              'url': next_page_url}
             except:
@@ -90,8 +83,8 @@ class Tamilgun(object):
 
             try:
                 if title not in added_items:
-                    d = dict(name=helper.movie_name_resolver(title), image=img, url=article.find('h3').find('a')['href'],
-                             infos={'title': helper.movie_name_resolver(title)})
+                    d = dict(name=utils.movie_name_resolver(title), image=img, url=article.find('h3').find('a')['href'],
+                             infos={'title': utils.movie_name_resolver(title)})
                     movies.append(d)
                     added_items.append(title)
             except:
@@ -99,8 +92,8 @@ class Tamilgun(object):
         if bool(next_page): #If next page
             movies.append(next_page)
 
-        if len(movies) == 0:
-            xbmcgui.Dialog().notification(heading='Error 404', message='No movies found')
+        #if len(movies) == 0:
+        #    xbmcgui.Dialog().notification(heading='Error 404', message='No movies found')
 
         return [movie for movie in movies if movie['name'] and movie['url']]
 
@@ -112,20 +105,35 @@ class Tamilgun(object):
         :param url:
         :return:
         """
+        items = []
         stream_urls = []
-        soup = helper.get_soup_from_url(url)
+        soup = utils.get_soup_from_url(url)
+
+        # Grab .hls links
         hls_streams = [item['src'] for item in soup.find_all('iframe', {'src': re.compile(r'.*?/hls.*?')})]
-        
         if len(hls_streams) > 0:
             for src in hls_streams:
                 url = re.sub('/(hls_\w*)/', '/hls/', src) + '/playlist.m3u8'
                 p = urlparse(url, 'http')
                 stream_urls.append(p.geturl())
-        
-        else:
-            return []
 
-        return [{'name': movie_name,
+        
+        items += [{'name': movie_name,
                  'quality': '720',
-                 'quality_icon': icon_720,
+                 'quality_icon': ICON_720,
                  'url': stream_url} for stream_url in stream_urls]
+
+        # Grab embadded links
+        embeded_urls = [item['src'] for item in soup.find_all('iframe', {'src': re.compile(r'(http.*?.html)')})]
+        
+        for emb_url in embeded_urls:
+            if 'ssfiles' in emb_url:
+                resolved = stream_resolver.resolve_ssfiles(emb_url)
+                items += [{
+                    'name': movie_name,
+                    'quality': item['quality'],
+                    'quality_icon': item['quality_icon'],
+                    'url': item['url']
+                } for item in resolved]
+
+        return items

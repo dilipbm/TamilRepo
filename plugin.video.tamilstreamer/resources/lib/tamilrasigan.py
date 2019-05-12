@@ -5,16 +5,13 @@ try:
 except ImportError:
     import urllib2
 
-from resources.lib import helper
 from resources.lib import stream_resolver
-
+from resources.lib import utils
+from resources.lib.utils import ADDON_ID, ICON_NEXT, ICON_240, ICON_360, ICON_720
 
 '''
     Main API for tamilyogi site
 '''
-
-addon_id = 'plugin.video.tamilstreamer'
-icon_next = xbmc.translatePath('special://home/addons/{0}/resources/images/next.png'.format(addon_id))
 
 class TamilRasigan(object):
     def __init__(self, plugin):
@@ -66,21 +63,21 @@ class TamilRasigan(object):
             s = self.plugin.keyboard("", "Search for movie name")
             url += str(s)
 
-        soup = helper.get_soup_from_url(url)
+        soup = utils.get_soup_from_url(url)
 
         for movie_list in soup.find_all('ul', class_='lcp_catlist'):
-            soup = helper.get_soup_from_text(str(movie_list))
+            soup = utils.get_soup_from_text(str(movie_list))
             for m in soup.find_all('a'):
                 title = m.get('title')
                 url = m.get('href')
 
                 if title is not None:
-                    #t = helper.movie_name_resolver(title)
+                    #t = utils.movie_name_resolver(title)
                     #print ('Searchin in OMDB {}'.format(t))
                     #r = omdb.get_movie_info(title=t)
                     #print (r)
                     try:
-                        d = dict(name=helper.movie_name_resolver(title), image='', url=url, infos=infos)
+                        d = dict(name=utils.movie_name_resolver(title), image='', url=url, infos=infos)
                         movies.append(d)
                     except:
                         pass
@@ -101,7 +98,7 @@ class TamilRasigan(object):
         :return:
         """
         stream_urls = []
-        soup = helper.get_soup_from_url(url)
+        soup = utils.get_soup_from_url(url)
 
         l = soup.find_all('iframe')
         for iframe in l:
