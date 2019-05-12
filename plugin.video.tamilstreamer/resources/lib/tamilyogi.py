@@ -1,4 +1,5 @@
 import xbmc
+import xbmcgui
 
 try:
     import urllib.request as urllib2
@@ -65,13 +66,12 @@ class TamilYogi(object):
         infos = {}
 
         if url == 'http://tamilyogi.cc/search':
-            kb = xbmc.Keyboard("", "Search for movie name")
-            kb.doModal()
-            if (kb.isConfirmed()):
-                url = 'http://tamilyogi.cc/?s={}'.format(kb.getText())
-            else:
+            s = xbmcgui.Dialog().input("Search for movie name", type=xbmcgui.INPUT_ALPHANUM)
+            if s == '':
                 return []
-
+            
+            url = 'http://tamilyogi.cc/?s={}'.format(s)
+            
         soup = utils.get_soup_from_url(url)
 
         for a in soup.find_all('a'):
