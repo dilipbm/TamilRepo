@@ -1,7 +1,12 @@
+v 1.4.8
+ - add new site (tamilarasan)
+
+v 1.4.7
+ - bug fix
+
 v 1.4.6
  - add new site (tamildbox)
  - code review
  - bug fix (tamilgun search)
  
-v 1.4.7
- - bug fix
+
