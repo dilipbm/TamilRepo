@@ -1,8 +1,72 @@
 import re
 import base64
+import json
+try:
+    from urllib.parse import urlparse, urlencode, urlsplit
+    from urllib.request import urlopen 
+except ImportError:
+    from urlparse import urlparse
+    from urllib import urlencode
+    from urllib2 import urlopen
+
+
 
 from resources.lib import utils
 from resources.lib.utils import ADDON_ID, ICON_NEXT, ICON_240, ICON_360, ICON_720
+
+
+
+def resolve_tamilarasanmovie(url):
+    resolved = []
+
+    code = url.split('/')[-1]
+    url_ = 'https://tamilarasanmovie.com/api/source/{}'.format(code)
+    data = urlencode({"r":"", "d": "tamilarasanmovie.com"}).encode("ascii")
+    try:
+        res = urlopen(url_, data=data).read()
+    except urllib2.URLError:
+        import ssl
+        context = ssl._create_unverified_context()
+        res = urlopen(url_, data=data, context=context).read()
+    
+
+    page = res.decode("utf8")
+
+    page_json = json.loads(page)
+
+    for data in page_json.get('data'):
+        file_ = data.get('file')
+        
+        if file_ is not None:
+            try:
+                redirected = urlopen(file_)
+            except urllib2.URLError:
+                import ssl
+                context = ssl._create_unverified_context()
+                redirected = urlopen(file_, context=context)
+
+            try:
+                status_code = redirected.status
+            except AttributeError:
+                status_code = redirected.code
+
+            if status_code == 200:
+                stream_url = redirected.geturl()
+            else:
+                continue
+
+        try:
+            item = dict(
+                quality=data.get('label'),
+                quality_icon=eval('ICON_' + data.get('label').replace('p','')),
+                url=stream_url
+            )
+        except:
+            continue
+
+        resolved.append(item)
+
+    return resolved
 
 
 def resolve_ssfiles(url):

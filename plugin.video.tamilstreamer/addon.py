@@ -14,6 +14,7 @@ from resources.lib import tamilrasigan
 from resources.lib import tamilgun
 from resources.lib import tamildbox
 from resources.lib import thiraimix
+from resources.lib import tamilarasan
 from resources.lib import utils
 
 plugin = routing.Plugin()
@@ -31,7 +32,7 @@ def index():
     addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="tamilgun"), ListItem("Tamilgun"), True)
     addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="tamildbox"), ListItem("Tamildbox"), True)
     #addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="thiraimix"), ListItem("ThiraiMix"), True)
-
+    addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="tamilarasan"), ListItem("Tamilarasan"), True)
     endOfDirectory(plugin.handle)
 
 
@@ -85,6 +86,14 @@ def section_view(site_name):
 
     elif site_name == 'tamildbox':
         site_api = tamildbox.Tamildbox(plugin)
+        for section in site_api.get_sections():
+            addDirectoryItem(plugin.handle,
+            plugin.url_for(movies_view, site_name=site_name, section_url=utils.encode_url(section['url'])),
+            ListItem(section['name']),
+            True)
+
+    elif site_name == 'tamilarasan':
+        site_api = tamilarasan.Tamilarasan(plugin)
         for section in site_api.get_sections():
             addDirectoryItem(plugin.handle,
             plugin.url_for(movies_view, site_name=site_name, section_url=utils.encode_url(section['url'])),
@@ -153,14 +162,17 @@ def movies_view(site_name, section_url):
     if site_name == 'tamilyogi':
         site_api = tamilyogi.TamilYogi(plugin)
 
-    if site_name == 'tamilrasigan':
+    elif site_name == 'tamilrasigan':
         site_api = tamilrasigan.TamilRasigan(plugin)
 
-    if site_name == 'tamilgun':
+    elif site_name == 'tamilgun':
         site_api = tamilgun.Tamilgun(plugin)
 
-    if site_name == 'tamildbox':
+    elif site_name == 'tamildbox':
         site_api = tamildbox.Tamildbox(plugin)
+
+    elif site_name == 'tamilarasan':
+        site_api = tamilarasan.Tamilarasan(plugin)
 
     movies = site_api.get_movies(section_url)
 
@@ -187,6 +199,21 @@ def movies_view(site_name, section_url):
     endOfDirectory(plugin.handle)
 
 
+
+@plugin.route('/directplay')
+def directplay():
+    listitem = ListItem('test')
+    listitem.setProperty('IsPlayable', 'true')
+    addDirectoryItem (
+        plugin.handle, 
+        'https://www1411.hlsmp4.com/token=RYov85oqYWpHg890KDQYiQ/1559514826/0.0.0.0/47/6/bb/cb0147d55dfd8f9e3b9b793083480bb6-720p.mp4',
+        listitem,
+        False
+    )
+
+    endOfDirectory(plugin.handle) 
+
+
 # STREAM LIST VIEW
 @plugin.route('/stream_list/<site_name>/<movie_name>/<movie_url>')
 def stream_list_view(site_name, movie_name, movie_url):
@@ -208,17 +235,20 @@ def stream_list_view(site_name, movie_name, movie_url):
         if site_name == 'tamilyogi':
             site_api = tamilyogi.TamilYogi(plugin)
 
-        if site_name == 'tamilrasigan':
+        elif site_name == 'tamilrasigan':
             site_api = tamilrasigan.TamilRasigan(plugin)
 
-        if site_name == 'tamilgun':
+        elif site_name == 'tamilgun':
             site_api = tamilgun.Tamilgun(plugin)
 
-        if site_name == 'thiraimix':
+        elif site_name == 'thiraimix':
             site_api = thiraimix.Thiraimix(plugin)
 
-        if site_name == 'tamildbox':
+        elif site_name == 'tamildbox':
             site_api = tamildbox.Tamildbox(plugin)
+
+        elif site_name == 'tamilarasan':
+            site_api = tamilarasan.Tamilarasan(plugin)
 
         stream_urls = site_api.get_stream_urls(movie_name, movie_url)
 
