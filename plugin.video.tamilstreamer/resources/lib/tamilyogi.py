@@ -32,7 +32,7 @@ class TamilYogi(object):
         site site main url
         :return:
         """
-        return 'http://tamilyogi.cc/'
+        return 'http://tamilyogi.vip/'
 
     def get_sections(self):
         """
@@ -40,15 +40,15 @@ class TamilYogi(object):
         :return:
         """
         sections = [{   'name': 'Tamil New Movies',
-                        'url': 'http://tamilyogi.cc/category/tamilyogi-full-movie-online/',},
+                        'url': 'http://tamilyogi.vip/category/tamilyogi-full-movie-online/',},
                     {'name': 'Tamil Bluray Movies',
-                    'url': 'http://tamilyogi.cc/category/tamilyogi-bluray-movies/',},
+                    'url': 'http://tamilyogi.vip/category/tamilyogi-bluray-movies/',},
                     {'name': 'Tamil DVDRip Movies',
-                     'url': 'http://tamilyogi.cc/category/tamilyogi-dvdrip-movies/'},
+                     'url': 'http://tamilyogi.vip/category/tamilyogi-dvdrip-movies/'},
                     {'name': 'Tamil Dubbed Movies',
-                     'url': 'http://tamilyogi.cc/category/tamilyogi-dubbed-movies-online/'},
+                     'url': 'http://tamilyogi.vip/category/tamilyogi-dubbed-movies-online/'},
                     {'name': 'Search',
-                     'url': 'http://tamilyogi.cc/search'}
+                     'url': 'http://tamilyogi.vip/search'}
                     ]
 
         return [section for section in sections if section['name'] and section['url']]
@@ -65,12 +65,12 @@ class TamilYogi(object):
         next_page = {}
         infos = {}
 
-        if url == 'http://tamilyogi.cc/search':
+        if url == 'http://tamilyogi.vip/search':
             s = xbmcgui.Dialog().input("Search for movie name", type=xbmcgui.INPUT_ALPHANUM)
             if s == '':
                 return []
             
-            url = 'http://tamilyogi.cc/?s={}'.format(s)
+            url = 'http://tamilyogi.vip/?s={}'.format(s)
             
         soup = utils.get_soup_from_url(url)
 
