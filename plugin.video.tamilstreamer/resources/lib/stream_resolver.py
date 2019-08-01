@@ -87,7 +87,11 @@ def resolve_ssfiles(url):
 
 
 def load_dailymotion_video(url):
-    video_id = url.split('/')[-1]
+    print('Dailymotion resolver for url {}'.format(url))
+    #video_id = url.split('/')[-1]
+    parsed_url = urlparse(url)
+    video_id = parsed_url.path.split('/')[-1]
+    print('Dailymotion video ID extracted {}'.format(video_id))
     return 'plugin://plugin.video.dailymotion_com/?url={}&mode=playVideo'.format(video_id)
 
 def load_youtube_video(url):
