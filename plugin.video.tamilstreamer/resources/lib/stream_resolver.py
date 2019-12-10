@@ -134,10 +134,15 @@ def load_vidorg_videos(url):
     qualities = re.findall(r'label:"(\d*p)"', soup.text)
     items = []
     for l, q in zip(links, qualities):
+        try:
+            icon = eval('ICON_' + q.replace('p',''))
+        except:
+            icon = ''
+
         d = {   
                 'url': l, 
                 'quality': q, 
-                'quality_icon': eval('ICON_' + q.replace('p',''))
+                'quality_icon': icon
             }
         items.append(d)
 
