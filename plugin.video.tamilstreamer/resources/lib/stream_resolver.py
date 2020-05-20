@@ -15,6 +15,24 @@ from resources.lib import utils
 from resources.lib.utils import ADDON_ID, ICON_NEXT, ICON_240, ICON_360, ICON_720
 
 
+def load_tamildhool_videos(url):
+    items = []
+
+    parsed_url = urlparse(url)
+    v_name = parsed_url.path.split('/')[-1]
+
+    stream_url = 'https://{}/v/{}.m3u8'.format(parsed_url.netloc, v_name)
+
+    item = dict(
+        url=stream_url,
+        quality='720',
+        quality_icon='ICON_720'
+    )
+    
+    items.append(item)
+
+    return items
+
 
 def load_tamilbliss_videos(url):
     items = []

@@ -1,3 +1,12 @@
+v1.6.0
+ - add yupptv
+
+v1.5.2
+ - add new lib
+
+v 1.5.1
+ - add resolver
+
 v 1.5.0
  - add tamildhool
 

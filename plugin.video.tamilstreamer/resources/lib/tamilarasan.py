@@ -15,6 +15,7 @@ from resources.lib.utils import ADDON_ID, ICON_NEXT, ICON_240, ICON_360, ICON_72
     Main API for tamildbox site
 '''
 
+
 class Tamilarasan(object):
     def __init__(self, plugin):
         self.plugin = plugin
@@ -42,22 +43,30 @@ class Tamilarasan(object):
         sections = [
             {
                 'name': 'New Tamil Movies',
-                'url': 'https://tamilarasan.net/tamil-new-movies-tamilrockers-tamilyogi-tamilgun-play/',
+                'url': 'https://tamilarasan.net/watch-new-tamil-movies/new-tamil-movies-tamilgun/',
+            },
+            {
+                'name': 'Tamil HD Movies',
+                'url': 'https://tamilarasan.net/watch-new-tamil-movies/tamil-hd-movies/',
             },
             {
                 'name': 'New Telugu Movies',
-                'url': 'https://tamilarasan.net/telugu-new-movies-tamilarasan-net/',
+                'url': 'https://tamilarasan.top/new-telugu-movies/',
+            },
+            {
+                'name': 'New Telugu Movies',
+                'url': 'https://tamilarasan.top/telugu-hd-movies/',
             },
             {
                 'name': 'Tamil Dubbed Movies',
-                'url': 'https://tamilarasan.net/tamil-dubbed-movies/',
-            }#,
-            #{
+                'url': 'https://tamilarasan.top/tamil-dubbed-movies/',
+            }  # ,
+            # {
             #    'name': 'Search',
             #    'url': 'https://tamilarasan.net/search',
-            #}
+            # }
         ]
-        
+
         return [section for section in sections if section['name'] and section['url']]
 
     def get_movies(self, url):
@@ -79,7 +88,6 @@ class Tamilarasan(object):
 
             url = 'https://tamilarasan.net/?s={}'.format(s)
 
-
         soup = utils.get_soup_from_url(url)
 
         for item in soup.find_all('div', class_='layer-wrapper'):
@@ -87,24 +95,26 @@ class Tamilarasan(object):
                 title = item.find('div', class_='layer-content').text
             except:
                 continue
- 
+
             try:
                 img = item.find('img')['src'].strip()
-                
+
             except:
                 img = ''
 
             try:
-                url = item.find('div', class_='layer-content').find('a').get('href')
+                url = item.find(
+                    'div', class_='layer-content').find('a').get('href')
 
             except:
                 continue
 
             try:
-                next_page_url = soup.find('a', class_='next page-numbers').get('href')
+                next_page_url = soup.find(
+                    'a', class_='next page-numbers').get('href')
                 next_page = {'name': 'Next Page',
                              'image': ICON_NEXT,
-                             'infos':{},
+                             'infos': {},
                              'url': next_page_url}
             except:
                 pass
@@ -118,14 +128,13 @@ class Tamilarasan(object):
             except:
                 pass
 
-        if bool(next_page): #If next page
+        if bool(next_page):  # If next page
             movies.append(next_page)
 
         if len(movies) == 0:
             xbmcgui.Dialog().notification(heading='Error 404', message='No movies found')
 
         return [movie for movie in movies if movie['name'] and movie['url']]
-
 
     def get_stream_urls(self, movie_name, url):
         """
@@ -140,8 +149,9 @@ class Tamilarasan(object):
         soup = utils.get_soup_from_url(url)
 
         # Grab embadded links
-        embeded_urls = [item['src'] for item in soup.find_all('iframe', {'src': re.compile(r'(http.*?)')})]
-        
+        embeded_urls = [item['src'] for item in soup.find_all(
+            'iframe', {'src': re.compile(r'(http.*?)')})]
+
         for emb_url in embeded_urls:
             if 'tamilarasanmovie.com' in emb_url:
                 resolved = stream_resolver.resolve_tamilarasanmovie(emb_url)

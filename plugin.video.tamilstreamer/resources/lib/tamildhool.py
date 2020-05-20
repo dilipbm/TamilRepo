@@ -267,14 +267,17 @@ class TamilDhool(object):
             elif host.lower() == 'vidorg':
                 stream_urls = stream_resolver.load_vidorg_videos(src)
 
-            elif host.lower() == 'malarmoon':
-                stream_urls = stream_resolver.load_malarmoon_videos(src)
-
-            elif host.lower() == 'tamilbliss':
-                stream_urls = stream_resolver.load_tamilbliss_videos(src)
+            # elif host.lower() == 'malarmoon':
+            #    stream_urls = stream_resolver.load_malarmoon_videos(src)
+#
+            # elif host.lower() == 'tamilbliss':
+            #    stream_urls = stream_resolver.load_tamilbliss_videos(src)
 
             else:
-                print('Host ingored!!')
+                try:
+                    stream_urls = stream_resolver.load_tamildhool_videos(src)
+                except:
+                    print('Host ingored!!')
 
             try:
                 youtube = soup.find(
