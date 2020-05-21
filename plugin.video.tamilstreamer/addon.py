@@ -24,6 +24,7 @@ from resources.lib import thiraimix
 from resources.lib import tamilarasan
 from resources.lib import tamildhool
 from resources.lib import yupptv
+from resources.lib import tamilan
 from resources.lib import utils
 
 plugin = routing.Plugin()
@@ -31,6 +32,7 @@ plugin = routing.Plugin()
 directory = os.path.dirname(os.path.realpath(__file__))
 storage_file = os.path.join(directory, "storage")
 ytv = yupptv.Yupptv(plugin, storage_file)
+tamilan = tamilan.Tamilan()
 
 # SITE VIEW - MAIN VIEW
 @plugin.route("/")
@@ -71,16 +73,16 @@ def index():
         ListItem("TamilDhool"),
         True,
     )
-    # addDirectoryItem(
-    #    plugin.handle,
-    #    plugin.url_for(section_view, site_name="yupptvlive"),
-    #    ListItem("YuppTV Live"),
-    #    True,
-    # )
     addDirectoryItem(
         plugin.handle,
         plugin.url_for(section_view, site_name="yupptv"),
         ListItem("YuppTV"),
+        True,
+    ),
+    addDirectoryItem(
+        plugin.handle,
+        plugin.url_for(section_view, site_name="tamilan"),
+        ListItem("Tamilan.NET"),
         True,
     )
 
@@ -208,6 +210,19 @@ def section_view(site_name):
                     channel_view,
                     site_name=site_name,
                     url=utils.encode_url(section["url"]),
+                ),
+                ListItem(section["name"]),
+                True,
+            )
+
+    elif site_name == "tamilan":
+        for section in tamilan.get_sections():
+            addDirectoryItem(
+                plugin.handle,
+                plugin.url_for(
+                    movies_view,
+                    site_name=site_name,
+                    section_url=utils.encode_url(section["url"]),
                 ),
                 ListItem(section["name"]),
                 True,
@@ -383,7 +398,6 @@ def episode_view(site_name, url):
     endOfDirectory(plugin.handle)
 
 
-# MOVIES VIEW
 @plugin.route("/movies/<site_name>/<section_url>")
 def movies_view(site_name, section_url):
     """
@@ -414,6 +428,9 @@ def movies_view(site_name, section_url):
 
     elif site_name == "tamildhool":
         site_api = tamildhool.TamilDhool(plugin)
+
+    elif site_name == "tamilan":
+        site_api = tamilan
 
     movies = site_api.get_movies(section_url)
 
@@ -524,6 +541,9 @@ def stream_list_view(site_name, movie_name, movie_url):
 
         elif site_name == "yupptv":
             site_api = ytv
+
+        elif site_name == "tamilan":
+            site_api = tamilan
 
         stream_urls = site_api.get_stream_urls(movie_name, movie_url)
 
