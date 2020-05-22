@@ -1,8 +1,10 @@
 import requests
 import re
+import os
 from bs4 import BeautifulSoup
 
 import xbmcplugin
+import xbmcgui
 
 try:
     from urllib.parse import urljoin
@@ -78,8 +80,14 @@ TV_MAPPING = [
 
 class Yupptv(object):
     def __init__(self, plugin, storage_file):
+        self.box_id = None
         self.username = xbmcplugin.getSetting(plugin.handle, "username")
         self.password = xbmcplugin.getSetting(plugin.handle, "password")
+
+        if not os.path.exists(storage_file):
+            with open(storage_file, "wb") as f:
+                pickle.dump({}, f)
+
         self.storage_file = storage_file
         self.sess = requests.session()
         self.sess.headers.update(
@@ -89,11 +97,22 @@ class Yupptv(object):
         )
 
         try:
-            storage_file_obj = open(self.storage_file, "rb")
-            self.sess.cookies = pickle.load(storage_file_obj)
-            storage_file_obj.close()
+            with open(self.storage_file, "rb") as f:
+                stored_data = pickle.load(f)
+                print("###### STORED COOKIES", stored_data)
+                stored_cookies = stored_data.get("cookies")
+                if stored_cookies:
+                    self.sess.cookies = stored_cookies
+
+                try:
+                    self.box_id = stored_cookies["BoxId"]
+                except:
+                    self.box_id = None
         except IOError:
             pass
+
+        if not self.box_id:
+            self.login()
 
     def login(self):
         print("######## YUPP LOGIN")
@@ -114,16 +133,31 @@ class Yupptv(object):
                         response.status_code == 200
                         and response.json().get("Response").get("status") == "1"
                     ):
-                        storage_file_obj = open(self.storage_file, "wb")
-                        pickle.dump(self.sess.cookies, storage_file_obj)
-                        storage_file_obj.close()
-                        print("LOGIN SUCESS")
+                        stored_data = {}
+                        with open(self.storage_file, "rb") as f:
+                            stored_data = pickle.load(f)
+
+                        stored_data["cookies"] = self.sess.cookies
+
+                        with open(self.storage_file, "wb") as f:
+                            pickle.dump(stored_data, f)
+
+                        print("LOGIN SUCCESS")
+                        xbmcgui.Dialog().notification(
+                            "YuppTV login status", "Login success"
+                        )
                         return True
             elif login_status == "1":
-                print("LOGIN SUCESS")
+                xbmcgui.Dialog().notification("YuppTV login status", "Login success")
+                print("LOGIN SUCCESS")
+                with open(self.storage_file, "wb") as f:
+                    stored_data = {}
+                    stored_data["cookies"] = {}
+                    pickle.dump(stored_data, f)
                 return True
             else:
                 pass
+        xbmcgui.Dialog().notification("YuppTV login status", "Login failed")
         return False
 
     def logout(self, box_id):
@@ -133,25 +167,27 @@ class Yupptv(object):
         response = self.sess.get(url, params=payload)
         if response.status_code == 200:
             print("Logout success")
+            xbmcgui.Dialog().notification("YuppTV login status", "Logout success")
             return True
 
         return False
 
     def find_stream_url(self, page_url):
-        print("#### FIND STREAM URL")
-        print(page_url)
+        # print("#### FIND STREAM URL")
+        # print(page_url)
         response = self.sess.get(page_url)
         if response.status_code == 200:
             pattern = re.compile(r'streamUrl.*src:\s?"(.*)"')
             urls = re.findall(pattern, response.text)
             if len(urls) > 0:
                 if "preview" in urls[0]:
-                    print("Preview link found. Retry login")
-                    print(urls[0])
+                    xbmcgui.Dialog().notification(
+                        "Information",
+                        "This is a preview. We are trying to reconnect with your credentiels",
+                    )
                     self.login()
                     new_response = self.sess.get(page_url)
                     urls = re.findall(pattern, new_response.text)
-                    print(urls)
 
                 return "{}|User-Agent='{}'".format(
                     urls[0], self.sess.headers["User-Agent"]
@@ -167,6 +203,7 @@ class Yupptv(object):
         sections = [
             {"name": "Live TV", "url": "live",},
             {"name": "Catch up", "url": "catchup",},
+            {"name": "Reconnect", "url": "reconnect",},
         ]
 
         return [section for section in sections if section["name"] and section["url"]]
@@ -177,16 +214,6 @@ class Yupptv(object):
         :param url:
         :return:
         """
-
-        print("### URL")
-        print(url)
-
-        # {
-        #    "name": "KTV",
-        #    "url": "https://www.yupptv.com/channels/ktv-hd/live",
-        #    "image": "https://d229kpbsb5jevy.cloudfront.net/tv/150/150/bnw/ktv-HD-white.png",
-        # },
-
         if url == "live":
             items = [
                 {
@@ -214,9 +241,6 @@ class Yupptv(object):
         return sorted_items
 
     def get_programmes(self, url):
-        print("##### get programmeee")
-        print(url)
-
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
 
@@ -244,10 +268,6 @@ class Yupptv(object):
         :param url:
         :return:
         """
-
-        print("########## episodes")
-        print("URL : {}".format(url))
-
         episodes = []
 
         episode = dict(
@@ -264,9 +284,6 @@ class Yupptv(object):
         :param url:
         :return:
         """
-
-        print("########## get stream url")
-        print("URL: {}".format(url))
 
         stream_urls = []
         self.find_stream_url(url)

@@ -204,16 +204,26 @@ def section_view(site_name):
 
     elif site_name == "yupptv":
         for section in ytv.get_sections():
-            addDirectoryItem(
-                plugin.handle,
-                plugin.url_for(
-                    channel_view,
-                    site_name=site_name,
-                    url=utils.encode_url(section["url"]),
-                ),
-                ListItem(section["name"]),
-                True,
-            )
+            if section["url"] == "reconnect":
+                addDirectoryItem(
+                    plugin.handle,
+                    plugin.url_for(
+                        action_handler, site_name=site_name, action_type="reconnect",
+                    ),
+                    ListItem(section["name"]),
+                    True,
+                )
+            else:
+                addDirectoryItem(
+                    plugin.handle,
+                    plugin.url_for(
+                        channel_view,
+                        site_name=site_name,
+                        url=utils.encode_url(section["url"]),
+                    ),
+                    ListItem(section["name"]),
+                    True,
+                )
 
     elif site_name == "tamilan":
         for section in tamilan.get_sections():
@@ -232,6 +242,15 @@ def section_view(site_name):
     #    plugin.redirect("/playable/{}/{}".format("playable", utils.encode_url(url)))
 
     endOfDirectory(plugin.handle)
+
+
+@plugin.route("/action_handler/<site_name>/<action_type>")
+def action_handler(site_name, action_type):
+    print("#### ACTION HANDLER")
+    if site_name == "yupptv":
+        if action_type == "reconnect":
+            ytv.logout(ytv.box_id)
+            ytv.login()
 
 
 @plugin.route("/channel/<site_name>/<url>")
