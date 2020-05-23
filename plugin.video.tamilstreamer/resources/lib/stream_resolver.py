@@ -10,9 +10,49 @@ except ImportError:
     from urllib import urlencode
     from urllib2 import urlopen
 
+import requests
 
+from bs4 import BeautifulSoup
 from resources.lib import utils
 from resources.lib.utils import ADDON_ID, ICON_NEXT, ICON_240, ICON_360, ICON_720
+
+
+def load_vidmojo(url, referer_url):
+    sources = []
+    sess = requests.session()
+    sess.headers.update({"User-Agent": utils.USER_AGENT})
+    sess.headers.update({"referer": referer_url})
+    response = sess.get(url)
+    to_eval = re.compile(r"(eval\(.*\))").findall(response.text)
+
+    encrypted = None
+    for e in to_eval:
+        if "p,a,c,k,e,d" in str(e):
+            try:
+                encrypted = str(e).rstrip().split("}(")[1][:-1]
+            except:
+                pass
+        else:
+            continue
+
+    if not encrypted:
+        raise RuntimeError("Cannot get encrypted data")
+
+    decrypted = eval("utils.JWplayer.unpack(" + encrypted)
+
+    try:
+        source = re.compile(r'sources.*src:.?"(https://.*?)"').findall(decrypted)
+        sources.append(
+            {
+                "url": source[0],
+                "quality": "720p",
+                "quality_icon": eval("ICON_" + "720"),
+            }
+        )
+    except KeyError:
+        source = None
+
+    return sources
 
 
 def load_tamildhool_videos(url):

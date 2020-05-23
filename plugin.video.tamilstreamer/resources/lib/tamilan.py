@@ -10,6 +10,7 @@ except ImportError:
 import xbmcgui
 
 from resources.lib import utils
+from resources.lib import stream_resolver
 from resources.lib.utils import ADDON_ID, ICON_NEXT, ICON_240, ICON_360, ICON_720
 
 
@@ -18,90 +19,74 @@ class Tamilan(object):
         self.sess = requests.session()
         self.sess.headers.update({"User-Agent": utils.USER_AGENT})
 
-    def _get_video_id(self, url):
-        video_id = None
-        response = self.sess.get(url)
-        soup = BeautifulSoup(response.text, "html.parser")
-        movie_form = soup.find("form", {"id": "movie-form"})
+    def _decode_html(self, encoded_html):
+        """Decode encoded HTML"""
 
-        if movie_form:
-            video_id = movie_form.find("input").get("value")
-
-        return video_id or None
-
-    def _get_sources(self, video_id):
-        sources = []
-        url = "https://mguire.com/verifying-source/"
-        response = self.sess.post(url, data={"id": video_id})
-        soup = BeautifulSoup(response.text, "html.parser")
+        soup = BeautifulSoup(encoded_html, "html.parser")
 
         js = soup.find("script").text
         pattern_script = re.compile(r"(\[.*?\])")
         try:
             encoded_html = re.findall(pattern_script, js)[0]
             encoded_html_list = eval(encoded_html)
-        except KeyError:
+        except IndexError:
             encoded_html_list = []
-
         try:
             sub_val = int(re.findall(r"-\s+(\d+)", js)[0])
-        except KeyError:
+        except IndexError:
             sub_val = None
+
         if sub_val and len(encoded_html_list) > 0:
             decoded_html = "".join(
                 map(chr, [encoded_val - sub_val for encoded_val in encoded_html_list])
             )
-            soup = BeautifulSoup(decoded_html, "html.parser")
-            video_src = soup.find("iframe").get("src")
-            self.sess.headers.update(
-                {"referer": "https://mguire.com/verifying-source/"}
-            )
-            response = self.sess.get(video_src)
-            del self.sess.headers["referer"]
+            return decoded_html
+        else:
+            return None
 
-            pattern = re.compile(r"eval(.*?)")
-            soup = BeautifulSoup(response.text, "html.parser")
-            find_eval = soup.find_all(text=pattern)
-            for e in find_eval:
-                if "p,a,c,k,e,d" in str(e):
-                    try:
-                        encrypted = str(e).rstrip().split("}(")[1][:-1]
-                    except:
-                        encrypted = None
+    def _get_video_id(self, url):
+        response = self.sess.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        input_ = soup.find("input", {"type": "hidden"})
+        if input_:
+            return input_.get("value")
+        else:
+            return None
 
-                else:
-                    continue
+    def _get_video_action_url(self, url):
+        action_url = None
+        response = self.sess.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        movie_form = soup.find("form", {"id": "movie-form"})
+        if not movie_form:
+            for mva in soup.find_all("form"):
+                action_url = mva.get("action")
+                if action_url and action_url.endswith("check-source/"):
+                    break
+        if movie_form:
+            action_url = movie_form.get("action")
 
-            decrypted = eval("Tamilan.unpack(" + encrypted)
+        return action_url
 
-            try:
-                pattern_source = re.compile(r'sources.*src:.?"(https://.*?)"')
-                source = re.findall(pattern_source, decrypted)
-                sources.append(
-                    {
-                        "url": source[0],
-                        "quality": "720p",
-                        "quality_icon": eval("ICON_" + "720"),
-                    }
-                )
-            except KeyError:
-                source = None
+    def _get_sources(self, video_id, action_url):
 
-        return sources
+        if video_id == "" or action_url == "":
+            raise ValueError("video ID or action url missing")
 
-    @staticmethod
-    def baseN(num, b, numerals="0123456789abcdefghijklmnopqrstuvwxyz"):
-        return ((num == 0) and numerals[0]) or (
-            Tamilan.baseN(num // b, b, numerals).lstrip(numerals[0]) + numerals[num % b]
-        )
+        if not action_url.startswith("http"):
+            action_url = "https:{}".format(action_url)
+        response = self.sess.post(action_url, data={"id": video_id})
 
-    @staticmethod
-    def unpack(p, a, c, k, e=None, d=None):
-        while c:
-            c -= 1
-            if k[c]:
-                p = re.sub("\\b" + Tamilan.baseN(c, a) + "\\b", k[c], p)
-        return p
+        # If not encoded
+        if "<title>" not in response.text:
+            html = self._decode_html(response.text)
+        else:
+            html = response.text
+
+        soup = BeautifulSoup(html, "html.parser")
+        video_src = soup.find("iframe").get("src")
+        if "vidmojo.net" in video_src:
+            return stream_resolver.load_vidmojo(video_src, action_url)
 
     def get_sections(self):
         """
@@ -134,10 +119,8 @@ class Tamilan(object):
         :return:
         """
         movies = []
-        added_items = []
         img = ""
         next_page = {}
-        infos = {}
 
         pDialog = xbmcgui.DialogProgress()
         pDialog.create("Loading", "Loading movies...")
@@ -151,10 +134,13 @@ class Tamilan(object):
 
             url = "https://tamilian.net/?s={}".format(s)
 
-        response = requests.get(url)
+        response = self.sess.get(url)
+        if response.status_code != 200:
+            return []
+
         soup = BeautifulSoup(response.text, "html.parser")
-        progress = 0
         movie_preview = soup.find_all("div", {"class": "movie-preview"})
+        progress = 0
         for movie in movie_preview:
             title_span = movie.find("span", {"class": "movie-title"})
             title = title_span.find("a").text
@@ -178,10 +164,11 @@ class Tamilan(object):
             progress += 100 / len(movie_preview)
             pDialog.update(progress)
 
-        next_page_url = soup.find("a", {"class": "loadnavi"}).get("href")
-        print("##### NEXT PAGE")
-        print(next_page_url)
-        print(soup.find("a", {"class": "loadnavi"}))
+        try:
+            next_page_url = soup.find("a", {"class": "loadnavi"}).get("href")
+        except:
+            next_page_url = None
+
         if next_page_url:
             next_page = {
                 "name": "Next Page",
@@ -201,9 +188,8 @@ class Tamilan(object):
         :return:
         """
         video_id = self._get_video_id(url)
-        stream_urls = self._get_sources(video_id)
-        print("##### STREAM")
-        print(stream_urls)
+        video_action_url = self._get_video_action_url(url)
+        stream_urls = self._get_sources(video_id, video_action_url)
         return [
             {
                 "name": movie_name,
@@ -214,9 +200,3 @@ class Tamilan(object):
             for stream_url in stream_urls
             if stream_url["url"]
         ]
-
-
-if __name__ == "__main__":
-    t = Tamilan()
-    video_id = t._get_video_id("https://tamilian.net/walter/")
-    source = t._get_source(video_id)

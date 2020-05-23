@@ -50,31 +50,6 @@ def index():
     )
     addDirectoryItem(
         plugin.handle,
-        plugin.url_for(section_view, site_name="tamilgun"),
-        ListItem("Tamilgun"),
-        True,
-    )
-    addDirectoryItem(
-        plugin.handle,
-        plugin.url_for(section_view, site_name="tamildbox"),
-        ListItem("Tamildbox"),
-        True,
-    )
-    # addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="thiraimix"), ListItem("ThiraiMix"), True)
-    addDirectoryItem(
-        plugin.handle,
-        plugin.url_for(section_view, site_name="tamilarasan"),
-        ListItem("Tamilarasan"),
-        True,
-    )
-    addDirectoryItem(
-        plugin.handle,
-        plugin.url_for(section_view, site_name="tamildhool"),
-        ListItem("TamilDhool"),
-        True,
-    )
-    addDirectoryItem(
-        plugin.handle,
         plugin.url_for(section_view, site_name="yupptv"),
         ListItem("YuppTV"),
         True,
@@ -85,6 +60,31 @@ def index():
         ListItem("Tamilan.NET"),
         True,
     )
+    # addDirectoryItem(
+    #     plugin.handle,
+    #     plugin.url_for(section_view, site_name="tamilgun"),
+    #     ListItem("Tamilgun"),
+    #     True,
+    # )
+    # addDirectoryItem(
+    #     plugin.handle,
+    #     plugin.url_for(section_view, site_name="tamildbox"),
+    #     ListItem("Tamildbox"),
+    #     True,
+    # )
+    # # addDirectoryItem(plugin.handle, plugin.url_for(section_view, site_name="thiraimix"), ListItem("ThiraiMix"), True)
+    # addDirectoryItem(
+    #     plugin.handle,
+    #     plugin.url_for(section_view, site_name="tamilarasan"),
+    #     ListItem("Tamilarasan"),
+    #     True,
+    # )
+    # addDirectoryItem(
+    #     plugin.handle,
+    #     plugin.url_for(section_view, site_name="tamildhool"),
+    #     ListItem("TamilDhool"),
+    #     True,
+    # )
 
     # addDirectoryItem(plugin.handle, plugin.url_for(directplay), ListItem("Test"), True)
 
@@ -378,6 +378,7 @@ def programmes_view(site_name, url):
 @plugin.route("/episodes/<site_name>/<url>")
 def episode_view(site_name, url):
 
+    setContent(plugin.handle, "videos")
     url = utils.decode_url(url)
 
     if site_name == "thiraimix":
@@ -415,6 +416,7 @@ def episode_view(site_name, url):
         )
 
     endOfDirectory(plugin.handle)
+    xbmc.executebuiltin("Container.SetViewMode(508)")
 
 
 @plugin.route("/movies/<site_name>/<section_url>")
@@ -426,7 +428,7 @@ def movies_view(site_name, section_url):
     :return:
     """
 
-    setContent(plugin.handle, "movies")
+    setContent(plugin.handle, "videos")
 
     # window = xbmcgui.Window(xbmcgui.getCurrentWindowId())
     # print(window.getProperty("visuel-view"))
@@ -484,8 +486,10 @@ def movies_view(site_name, section_url):
             True,
         )
 
+    # print("###### MODE")
+    # print(xbmc.executebuiltin("Container.Viewmode"))
     endOfDirectory(plugin.handle)
-    # xbmc.executebuiltin("Container.SetViewMode(500)")
+    xbmc.executebuiltin("Container.SetViewMode(508)")
 
 
 @plugin.route("/playable/<name>/<url>")
