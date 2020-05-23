@@ -8,6 +8,19 @@ except ImportError:
     import urllib2
 
 
+class MovieViewTypeEnum:
+    ICON = 54
+    LIST = 52
+    LIST_INFO = 58
+    LIST_INFO_2 = 66
+    LIST_INFO_3 = 95
+    THUMBS_INFO = 97
+    WRAP_INFO = 53
+    WRAP_3D = 588
+    FANART = 583
+    WALL = 69
+
+
 ADDON_ID = "plugin.video.tamilstreamer"
 ICON_NEXT = xbmc.translatePath(
     "special://home/addons/{0}/resources/images/next.png".format(ADDON_ID)
@@ -189,7 +202,7 @@ class JWplayer(object):
         sources = re.findall(pattern, self.beautified)
         return sources
 
+
 # url = 'http://fastplay.to/embed-vmbkhvs0n6vr.html'
 # jwp = JWplayer(url)
 # sources = jwp.sources()
-

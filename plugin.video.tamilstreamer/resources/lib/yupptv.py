@@ -5,6 +5,10 @@ from bs4 import BeautifulSoup
 
 import xbmcplugin
 import xbmcgui
+import xbmcvfs
+import xbmcaddon
+import xbmc
+
 
 try:
     from urllib.parse import urljoin
@@ -79,40 +83,53 @@ TV_MAPPING = [
 
 
 class Yupptv(object):
-    def __init__(self, plugin, storage_file):
-        self.box_id = None
-        self.username = xbmcplugin.getSetting(plugin.handle, "username")
-        self.password = xbmcplugin.getSetting(plugin.handle, "password")
+    def __init__(self, plugin):
+        if "yupptv" in plugin.path:
+            self.box_id = None
+            self.storage_name = "YTP_COOKIES"
+            self.username = xbmcplugin.getSetting(plugin.handle, "username")
+            self.password = xbmcplugin.getSetting(plugin.handle, "password")
 
-        if not os.path.exists(storage_file):
-            with open(storage_file, "wb") as f:
-                pickle.dump({}, f)
+            if self.username == "" or self.password == "":
+                xbmcgui.Dialog().ok(
+                    "YuppTV warning",
+                    "You have to use your Yupptv account to connect. Goto addons setting",
+                )
 
-        self.storage_file = storage_file
-        self.sess = requests.session()
-        self.sess.headers.update(
-            {
-                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"
-            }
-        )
+            self.sess = requests.session()
+            self.sess.headers.update(
+                {
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"
+                }
+            )
 
-        try:
-            with open(self.storage_file, "rb") as f:
-                stored_data = pickle.load(f)
-                print("###### STORED COOKIES", stored_data)
-                stored_cookies = stored_data.get("cookies")
-                if stored_cookies:
-                    self.sess.cookies = stored_cookies
+            stored_cookies = self.get_data_from_storage(self.storage_name)
+            print("#### SORED")
+            print(stored_cookies)
+            if stored_cookies:
+                self.sess.cookies = stored_cookies
 
-                try:
-                    self.box_id = stored_cookies["BoxId"]
-                except:
-                    self.box_id = None
-        except IOError:
+            if not self.sess.cookies.get("BoxId"):
+                self.login()
+        else:
             pass
 
-        if not self.box_id:
-            self.login()
+    @property
+    def hasCredentiels(self):
+        if self.username == "" or self.password == "":
+            return False
+        else:
+            return True
+
+    def set_data_to_storage(self, name, data):
+        data_path = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo("profile"))
+        storage = os.path.join(data_path, "{}.pkl".format(name))
+        pickle.dump(data, open(storage, "wb"))
+
+    def get_data_from_storage(self, name):
+        data_path = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo("profile"))
+        storage = os.path.join(data_path, "{}.pkl".format(name))
+        return pickle.load(open(storage, "rb"))
 
     def login(self):
         print("######## YUPP LOGIN")
@@ -133,14 +150,8 @@ class Yupptv(object):
                         response.status_code == 200
                         and response.json().get("Response").get("status") == "1"
                     ):
-                        stored_data = {}
-                        with open(self.storage_file, "rb") as f:
-                            stored_data = pickle.load(f)
 
-                        stored_data["cookies"] = self.sess.cookies
-
-                        with open(self.storage_file, "wb") as f:
-                            pickle.dump(stored_data, f)
+                        self.set_data_to_storage(self.storage_name, self.sess.cookies)
 
                         print("LOGIN SUCCESS")
                         xbmcgui.Dialog().notification(
@@ -150,10 +161,7 @@ class Yupptv(object):
             elif login_status == "1":
                 xbmcgui.Dialog().notification("YuppTV login status", "Login success")
                 print("LOGIN SUCCESS")
-                with open(self.storage_file, "wb") as f:
-                    stored_data = {}
-                    stored_data["cookies"] = {}
-                    pickle.dump(stored_data, f)
+                self.set_data_to_storage(self.storage_name, self.sess.cookies)
                 return True
             else:
                 pass
@@ -175,6 +183,7 @@ class Yupptv(object):
     def find_stream_url(self, page_url):
         # print("#### FIND STREAM URL")
         # print(page_url)
+
         response = self.sess.get(page_url)
         if response.status_code == 200:
             pattern = re.compile(r'streamUrl.*src:\s?"(.*)"')
@@ -241,11 +250,15 @@ class Yupptv(object):
         return sorted_items
 
     def get_programmes(self, url):
+        pDialog = xbmcgui.DialogProgress()
+        pDialog.create("Loading", "Loading elements...")
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
 
         programmes = []
-        for item in soup.find_all("a"):
+        a_tags = soup.find_all("a")
+        progress = 0
+        for item in a_tags:
             data = {}
             data["url"] = item.get("href") or ""
             title = item.find("div", {"class": "show-name"}).text
@@ -258,6 +271,8 @@ class Yupptv(object):
             data["infos"] = {}
 
             programmes.append(data)
+            progress += 100 / len(a_tags)
+            pDialog.update(progress)
 
         print(programmes)
         return programmes

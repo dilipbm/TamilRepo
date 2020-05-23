@@ -7,7 +7,9 @@ import os
 
 import routing
 import xbmcgui
+import xbmc
 import xbmcvfs
+import xbmcaddon
 from xbmcgui import ListItem
 from xbmcplugin import addDirectoryItem, endOfDirectory, setResolvedUrl, setContent
 
@@ -26,12 +28,10 @@ from resources.lib import tamildhool
 from resources.lib import yupptv
 from resources.lib import tamilan
 from resources.lib import utils
+from resources.lib.utils import MovieViewTypeEnum
 
 plugin = routing.Plugin()
-
-directory = os.path.dirname(os.path.realpath(__file__))
-storage_file = os.path.join(directory, "storage")
-ytv = yupptv.Yupptv(plugin, storage_file)
+ytv = yupptv.Yupptv(plugin)
 tamilan = tamilan.Tamilan()
 
 # SITE VIEW - MAIN VIEW
@@ -202,7 +202,7 @@ def section_view(site_name):
                 True,
             )
 
-    elif site_name == "yupptv":
+    elif site_name == "yupptv" and ytv.hasCredentiels:
         for section in ytv.get_sections():
             if section["url"] == "reconnect":
                 addDirectoryItem(
@@ -428,6 +428,15 @@ def movies_view(site_name, section_url):
 
     setContent(plugin.handle, "movies")
 
+    # window = xbmcgui.Window(xbmcgui.getCurrentWindowId())
+    # print(window.getProperty("visuel-view"))
+    # print(plugin.getSetting("visuel-view"))
+    # xbmc.executebuiltin("Container.SetViewMode(55)")
+    # window = xbmcgui.Window(xbmcgui.getCurrentWindowId())
+    # print(dir(window))
+    # print('### PROP')
+    # print(window.getProperty())
+
     section_url = utils.decode_url(section_url)
 
     if site_name == "tamilyogi":
@@ -476,6 +485,7 @@ def movies_view(site_name, section_url):
         )
 
     endOfDirectory(plugin.handle)
+    # xbmc.executebuiltin("Container.SetViewMode(500)")
 
 
 @plugin.route("/playable/<name>/<url>")

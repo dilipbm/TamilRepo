@@ -139,6 +139,9 @@ class Tamilan(object):
         next_page = {}
         infos = {}
 
+        pDialog = xbmcgui.DialogProgress()
+        pDialog.create("Loading", "Loading movies...")
+
         if "search" in url:
             s = xbmcgui.Dialog().input(
                 "Search for movie name", type=xbmcgui.INPUT_ALPHANUM
@@ -150,7 +153,9 @@ class Tamilan(object):
 
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
-        for movie in soup.find_all("div", {"class": "movie-preview"}):
+        progress = 0
+        movie_preview = soup.find_all("div", {"class": "movie-preview"})
+        for movie in movie_preview:
             title_span = movie.find("span", {"class": "movie-title"})
             title = title_span.find("a").text
             title = utils.movie_name_resolver(title)
@@ -170,6 +175,8 @@ class Tamilan(object):
             movies.append(
                 {"name": title, "url": url, "image": img, "infos": {"title": title}}
             )
+            progress += 100 / len(movie_preview)
+            pDialog.update(progress)
 
         next_page_url = soup.find("a", {"class": "loadnavi"}).get("href")
         print("##### NEXT PAGE")
