@@ -1,3 +1,6 @@
+v1.7.3
+ - bugfix tamilyogi
+
 v1.7.2
  - bugfix login/logout
 
